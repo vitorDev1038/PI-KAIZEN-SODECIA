@@ -1,7 +1,7 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/Button';
-import { Lightbulb, LogOut, LayoutDashboard, FileText, Users, Settings } from 'lucide-react';
+import { Lightbulb, LogOut, LayoutDashboard, FileText, Users, Settings, Menu, X } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +11,7 @@ interface LayoutProps {
 
 export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const { profile, signOut } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isAdmin = profile?.role === 'admin';
 
@@ -35,6 +36,14 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
             </div>
 
             <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{profile?.full_name}</p>
                 <p className="text-xs text-gray-500">
@@ -51,7 +60,17 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
       </header>
 
       <div className="flex">
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] hidden md:block">
+        {/* Mobile menu backdrop */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        <aside className={`w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] ${
+          isMobileMenuOpen ? 'fixed left-0 top-16 z-50 md:relative md:top-0' : 'hidden md:block'
+        }`}>
           <nav className="p-4 space-y-1">
             {navigation
               .filter((item) => item.show)
@@ -61,7 +80,10 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onPageChange(item.id as typeof currentPage)}
+                    onClick={() => {
+                      onPageChange(item.id as typeof currentPage);
+                      setIsMobileMenuOpen(false); // Close mobile menu on navigation
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${
                       isActive
                         ? 'bg-blue-50 text-blue-700 font-medium'
