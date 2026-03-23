@@ -73,7 +73,7 @@ export function Register({ onToggleLogin }: RegisterProps) {
               <Lightbulb className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Kaizen Flow</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Sodecia Kaizen</h1>
               <p className="text-sm text-gray-600">Criar nova conta</p>
             </div>
           </div>

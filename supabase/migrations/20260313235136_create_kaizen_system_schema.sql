@@ -1,8 +1,8 @@
 /*
-  # Kaizen Flow - Complete Database Schema
+  # Sodecia Kaizen - Complete Database Schema
 
   ## Overview
-  This migration creates the complete database structure for the Kaizen Flow system,
+  This migration creates the complete database structure for the Sodecia Kaizen system,
   a web-based continuous improvement management platform.
 
   ## New Tables

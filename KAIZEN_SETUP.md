@@ -1,4 +1,4 @@
-# Kaizen Flow - Sistema de Gerenciamento de Melhorias
+# Sodecia Kaizen - Sistema de Gerenciamento de Melhorias
 
 Um sistema web completo de gerenciamento de Kaizens (Programa de Ideias e Melhorias) desenvolvido com React, Vite, Tailwind CSS e Supabase.
 
