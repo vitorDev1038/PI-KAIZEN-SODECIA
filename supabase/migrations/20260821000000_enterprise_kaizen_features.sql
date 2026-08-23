@@ -137,12 +137,17 @@ BEGIN
     AND table_name = 'badges'
     AND column_name = 'code'
   ) THEN
-    ALTER TABLE badges ADD COLUMN code text UNIQUE;
+    -- Add column as nullable first
+    ALTER TABLE badges ADD COLUMN code text;
+    
+    -- Update existing rows with generated codes if any exist
+    UPDATE badges SET code = 'BADGE_' || id::text WHERE code IS NULL;
+    
+    -- Now make it NOT NULL and UNIQUE
+    ALTER TABLE badges ALTER COLUMN code SET NOT NULL;
+    ALTER TABLE badges ADD CONSTRAINT badges_code_unique UNIQUE (code);
   END IF;
 END $$;
-
--- Ensure code is NOT NULL only after column exists
-ALTER TABLE badges ALTER COLUMN code SET NOT NULL;
 
 ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
 
@@ -179,9 +184,21 @@ CREATE TABLE IF NOT EXISTS notifications (
   message text NOT NULL,
   type text DEFAULT 'info',
   read boolean DEFAULT false,
-  kaizen_id uuid REFERENCES kaizens(id) ON DELETE CASCADE,
   created_at timestamptz DEFAULT now()
 );
+
+-- Add kaizen_id column if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'notifications'
+    AND column_name = 'kaizen_id'
+  ) THEN
+    ALTER TABLE notifications ADD COLUMN kaizen_id uuid REFERENCES kaizens(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 

@@ -157,7 +157,16 @@ BEGIN
     AND table_name = 'notifications'
   ) THEN
     CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications (user_id);
-    CREATE INDEX IF NOT EXISTS notifications_kaizen_id_idx ON notifications (kaizen_id);
+    
+    -- Only create kaizen_id index if column exists
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public'
+      AND table_name = 'notifications'
+      AND column_name = 'kaizen_id'
+    ) THEN
+      CREATE INDEX IF NOT EXISTS notifications_kaizen_id_idx ON notifications (kaizen_id);
+    END IF;
   END IF;
 END $$;
 
@@ -197,6 +206,11 @@ BEGIN
     SELECT 1 FROM information_schema.tables
     WHERE table_schema = 'public'
     AND table_name = 'notifications'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'notifications'
+    AND column_name = 'read'
   ) THEN
     CREATE INDEX IF NOT EXISTS notifications_unread_user_idx
       ON notifications (user_id, created_at DESC)
