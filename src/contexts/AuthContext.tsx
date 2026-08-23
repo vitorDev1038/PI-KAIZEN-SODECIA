@@ -51,13 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching profile:', error instanceof Error ? error.message : 'Unknown error');
         setProfile(null);
       } else {
         setProfile(data);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching profile:', error instanceof Error ? error.message : 'Unknown error');
       setProfile(null);
     } finally {
       setLoading(false);

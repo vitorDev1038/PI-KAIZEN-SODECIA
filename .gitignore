@@ -11,6 +11,13 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+.env.*
+
 .vscode/*
 !.vscode/extensions.json
 .idea

@@ -27,8 +27,8 @@ export function Register({ onToggleLogin }: RegisterProps) {
       return;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres');
+    if (password.length < 8) {
+      setError('A senha deve ter pelo menos 8 caracteres');
       return;
     }
 
@@ -73,7 +73,7 @@ export function Register({ onToggleLogin }: RegisterProps) {
               <Lightbulb className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Sodecia Kaizen</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Kaizen Flow</h1>
               <p className="text-sm text-gray-600">Criar nova conta</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export function Register({ onToggleLogin }: RegisterProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8 caracteres"
           />
 
           <Input
