@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Kaizen, Category, Profile, Comment } from '../lib/database.types';
+import type { Kaizen, Category, Profile, Comment, Department, ActionPlan } from '../lib/database.types';
 import { Card, CardBody } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -9,12 +9,16 @@ import { Textarea } from '../components/ui/Textarea';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
-import { Search, Filter, Download, Check, X, MessageSquare } from 'lucide-react';
+import { Download, Check, X, MessageSquare, Printer, Kanban, Building2, DollarSign } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { KaizenA3Report } from '../components/KaizenA3Report';
+import { KanbanBoard } from '../components/KanbanBoard';
 
 interface KaizenWithDetails extends Kaizen {
   category?: Category;
   profile?: Profile;
+  department?: Department;
+  actionPlans?: ActionPlan[];
 }
 
 interface CommentWithProfile extends Comment {
@@ -27,19 +31,24 @@ export function AdminKaizens() {
   const [kaizens, setKaizens] = useState<KaizenWithDetails[]>([]);
   const [filteredKaizens, setFilteredKaizens] = useState<KaizenWithDetails[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedKaizen, setSelectedKaizen] = useState<KaizenWithDetails | null>(null);
   const [comments, setComments] = useState<CommentWithProfile[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [activeModalTab, setActiveModalTab] = useState<'details' | 'a3' | 'kanban'>('details');
+
   const [filters, setFilters] = useState({
     search: '',
     status: '',
     category: '',
+    department: '',
   });
 
   useEffect(() => {
     fetchKaizens();
     fetchCategories();
+    fetchDepartments();
   }, []);
 
   useEffect(() => {
@@ -50,7 +59,7 @@ export function AdminKaizens() {
     setLoading(true);
     const { data, error } = await supabase
       .from('kaizens')
-      .select('*, category:categories(*), profile:profiles(*)')
+      .select('*, category:categories(*), profile:profiles(*), department:departments(*)')
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -62,6 +71,11 @@ export function AdminKaizens() {
   const fetchCategories = async () => {
     const { data } = await supabase.from('categories').select('*').order('name');
     if (data) setCategories(data);
+  };
+
+  const fetchDepartments = async () => {
+    const { data } = await supabase.from('departments').select('*').order('name');
+    if (data) setDepartments(data);
   };
 
   const fetchComments = async (kaizenId: string) => {
@@ -94,6 +108,10 @@ export function AdminKaizens() {
       filtered = filtered.filter((k) => k.category_id === filters.category);
     }
 
+    if (filters.department) {
+      filtered = filtered.filter((k) => k.department_id === filters.department);
+    }
+
     setFilteredKaizens(filtered);
   };
 
@@ -110,6 +128,17 @@ export function AdminKaizens() {
     if (error) {
       toast.error('Erro ao atualizar status');
       return;
+    }
+
+    if (selectedKaizen) {
+      // Notify employee about status change
+      await supabase.from('notifications').insert({
+        user_id: selectedKaizen.employee_id,
+        title: `Status do Kaizen Alterado: ${status.toUpperCase()}`,
+        message: feedback || `Seu Kaizen "${selectedKaizen.title}" teve o status alterado para ${status}.`,
+        type: status === 'approved' ? 'success' : status === 'rejected' ? 'warning' : 'info',
+        kaizen_id: selectedKaizen.id,
+      });
     }
 
     if (feedback && profile) {
@@ -144,27 +173,30 @@ export function AdminKaizens() {
   };
 
   const exportToCSV = () => {
-    const headers = ['ID', 'Título', 'Funcionário', 'Categoria', 'Status', 'Data'];
+    const headers = ['ID', 'Título', 'Funcionário', 'Setor', 'Categoria', 'Status', 'Economia R$', 'Data'];
     const rows = filteredKaizens.map((k) => [
       k.id,
-      k.title,
-      k.profile?.full_name || '',
-      k.category?.name || '',
+      `"${k.title}"`,
+      `"${k.profile?.full_name || ''}"`,
+      `"${k.department?.name || ''}"`,
+      `"${k.category?.name || ''}"`,
       k.status,
+      k.realized_savings || k.estimated_savings || 0,
       new Date(k.created_at).toLocaleDateString('pt-BR'),
     ]);
 
     const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kaizens-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `kaizens-sodecia-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
   };
 
   const handleKaizenClick = (kaizen: KaizenWithDetails) => {
     setSelectedKaizen(kaizen);
+    setActiveModalTab('details');
     fetchComments(kaizen.id);
   };
 
@@ -172,21 +204,21 @@ export function AdminKaizens() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestão de Kaizens</h1>
-          <p className="text-gray-600 mt-1">Gerencie todas as submissões de melhorias</p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestão Avançada de Kaizens</h1>
+          <p className="text-gray-600 mt-1">Gerencie submissões, planos 5W2H e fichas A3</p>
         </div>
         <Button onClick={exportToCSV} variant="secondary">
           <Download className="w-4 h-4 mr-2" />
-          Exportar CSV
+          Exportar Relatório CSV
         </Button>
       </div>
 
       <Card>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <Input
-                placeholder="Buscar por título, problema ou funcionário..."
+                placeholder="Buscar título, problema..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               />
@@ -210,6 +242,14 @@ export function AdminKaizens() {
                 ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
               ]}
             />
+            <Select
+              value={filters.department}
+              onChange={(e) => setFilters({ ...filters, department: e.target.value })}
+              options={[
+                { value: '', label: 'Todos os setores Sodecia' },
+                ...departments.map((dep) => ({ value: dep.id, label: dep.name })),
+              ]}
+            />
           </div>
         </CardBody>
       </Card>
@@ -225,26 +265,33 @@ export function AdminKaizens() {
           {filteredKaizens.map((kaizen) => (
             <Card key={kaizen.id} hover>
               <CardBody>
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{kaizen.title}</h3>
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <h3 className="text-lg font-bold text-gray-900">{kaizen.title}</h3>
                       <Badge variant={kaizen.status} />
-                    </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      {kaizen.category && (
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
-                          {kaizen.category.name}
+                      {kaizen.department && (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-blue-50 text-blue-800 rounded border border-blue-200 flex items-center gap-1">
+                          <Building2 className="w-3 h-3" /> {kaizen.department.name}
                         </span>
                       )}
-                      {kaizen.profile && (
-                        <span className="text-xs text-gray-500">Por: {kaizen.profile.full_name}</span>
+                      {(kaizen.realized_savings || kaizen.estimated_savings) ? (
+                        <span className="px-2 py-0.5 text-xs font-bold bg-emerald-50 text-emerald-800 rounded border border-emerald-200 flex items-center gap-1">
+                          <DollarSign className="w-3 h-3" /> R$ {(kaizen.realized_savings || kaizen.estimated_savings || 0).toLocaleString('pt-BR')} /mês
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
+                      {kaizen.category && (
+                        <span className="font-medium text-gray-700">Categoria: {kaizen.category.name}</span>
                       )}
+                      {kaizen.profile && <span>• Por: {kaizen.profile.full_name}</span>}
+                      <span>• Data: {new Date(kaizen.created_at).toLocaleDateString('pt-BR')}</span>
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2">{kaizen.problem}</p>
                   </div>
                   <Button variant="secondary" size="sm" onClick={() => handleKaizenClick(kaizen)}>
-                    Visualizar
+                    Visualizar Detalhes
                   </Button>
                 </div>
               </CardBody>
@@ -254,39 +301,78 @@ export function AdminKaizens() {
       )}
 
       {selectedKaizen && (
-        <KaizenDetailModal
-          kaizen={selectedKaizen}
-          comments={comments}
-          newComment={newComment}
-          setNewComment={setNewComment}
-          onClose={() => setSelectedKaizen(null)}
-          onUpdateStatus={updateKaizenStatus}
-          onAddComment={addComment}
-        />
+        <Modal isOpen={true} onClose={() => setSelectedKaizen(null)} title={`Kaizen: ${selectedKaizen.title}`} size="xl">
+          <div className="space-y-4">
+            {/* Modal Tabs */}
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setActiveModalTab('details')}
+                className={`py-2 px-4 text-xs font-bold border-b-2 transition-colors ${
+                  activeModalTab === 'details' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'
+                }`}
+              >
+                Avaliação & Feedback
+              </button>
+              <button
+                onClick={() => setActiveModalTab('a3')}
+                className={`py-2 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-1 ${
+                  activeModalTab === 'a3' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'
+                }`}
+              >
+                <Printer className="w-3.5 h-3.5" /> Ficha A3 Kaizen (PDF)
+              </button>
+              <button
+                onClick={() => setActiveModalTab('kanban')}
+                className={`py-2 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-1 ${
+                  activeModalTab === 'kanban' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'
+                }`}
+              >
+                <Kanban className="w-3.5 h-3.5" /> Plano 5W2H (Kanban)
+              </button>
+            </div>
+
+            {activeModalTab === 'details' && (
+              <KaizenDetailModalContent
+                kaizen={selectedKaizen}
+                comments={comments}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                onUpdateStatus={updateKaizenStatus}
+                onAddComment={addComment}
+              />
+            )}
+
+            {activeModalTab === 'a3' && (
+              <KaizenA3Report kaizen={selectedKaizen} />
+            )}
+
+            {activeModalTab === 'kanban' && (
+              <KanbanBoard kaizenId={selectedKaizen.id} canEdit={true} />
+            )}
+          </div>
+        </Modal>
       )}
     </div>
   );
 }
 
-interface KaizenDetailModalProps {
+interface KaizenDetailModalContentProps {
   kaizen: KaizenWithDetails;
   comments: CommentWithProfile[];
   newComment: string;
   setNewComment: (value: string) => void;
-  onClose: () => void;
   onUpdateStatus: (id: string, status: Kaizen['status'], feedback?: string) => void;
   onAddComment: () => void;
 }
 
-function KaizenDetailModal({
+function KaizenDetailModalContent({
   kaizen,
   comments,
   newComment,
   setNewComment,
-  onClose,
   onUpdateStatus,
   onAddComment,
-}: KaizenDetailModalProps) {
+}: KaizenDetailModalContentProps) {
   const [feedback, setFeedback] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'review' | null>(null);
@@ -311,127 +397,141 @@ function KaizenDetailModal({
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={kaizen.title} size="xl">
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Badge variant={kaizen.status} />
-          {kaizen.category && (
-            <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
-              {kaizen.category.name}
-            </span>
-          )}
-        </div>
-
-        {kaizen.image_url && (
-          <div className="rounded-lg overflow-hidden">
-            <img src={kaizen.image_url} alt={kaizen.title} className="w-full h-auto" />
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <Badge variant={kaizen.status} />
+        {kaizen.department && (
+          <span className="px-2 py-1 text-xs font-semibold bg-blue-50 text-blue-800 rounded">
+            Setor: {kaizen.department.name}
+          </span>
         )}
-
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-1">Problema Identificado</h4>
-          <p className="text-sm text-gray-700">{kaizen.problem}</p>
-        </div>
-
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-1">Sugestão de Melhoria</h4>
-          <p className="text-sm text-gray-700">{kaizen.suggestion}</p>
-        </div>
-
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-1">Benefícios Esperados</h4>
-          <p className="text-sm text-gray-700">{kaizen.benefits}</p>
-        </div>
-
-        {!showFeedback && (
-          <div className="flex gap-3">
-            <Button
-              variant="success"
-              onClick={() => handleAction('approve')}
-              disabled={kaizen.status === 'approved'}
-            >
-              <Check className="w-4 h-4 mr-2" />
-              Aprovar
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => handleAction('reject')}
-              disabled={kaizen.status === 'rejected'}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Reprovar
-            </Button>
-            <Button variant="secondary" onClick={() => handleAction('review')}>
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Solicitar Ajustes
-            </Button>
-          </div>
+        {kaizen.category && (
+          <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+            {kaizen.category.name}
+          </span>
         )}
+      </div>
 
-        {showFeedback && (
-          <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-            <Textarea
-              label={actionType === 'reject' ? 'Motivo da Reprovação' : 'Feedback para Ajustes'}
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              rows={3}
-              required
-            />
-            <div className="flex gap-2">
-              <Button onClick={handleSubmitFeedback}>Confirmar</Button>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setShowFeedback(false);
-                  setFeedback('');
-                }}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        )}
+      {kaizen.image_url && (
+        <div className="rounded-lg overflow-hidden border border-gray-200">
+          <img src={kaizen.image_url} alt={kaizen.title} className="w-full h-48 object-cover" />
+        </div>
+      )}
 
-        <div className="border-t border-gray-200 pt-4">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">Comentários e Feedback</h4>
-          <div className="space-y-3 mb-4">
-            {comments.map((comment) => (
-              <div
-                key={comment.id}
-                className={`p-3 rounded-lg ${
-                  comment.is_feedback ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-gray-900">
-                    {comment.profiles?.full_name}
-                  </span>
-                  {comment.is_feedback && (
-                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
-                      Feedback Oficial
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-700">{comment.content}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {new Date(comment.created_at).toLocaleString('pt-BR')}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Textarea
-              placeholder="Adicionar comentário..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              rows={2}
-            />
-            <Button onClick={onAddComment} disabled={!newComment.trim()}>
-              Enviar
-            </Button>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl text-xs border border-gray-200">
+        <div>
+          <span className="text-gray-500 font-bold uppercase block">Economia Estimada</span>
+          <span className="text-sm font-black text-green-700">R$ {(kaizen.estimated_savings || 0).toLocaleString('pt-BR')}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 font-bold uppercase block">Custo de Implantação</span>
+          <span className="text-sm font-black text-gray-700">R$ {(kaizen.implementation_cost || 0).toLocaleString('pt-BR')}</span>
         </div>
       </div>
-    </Modal>
+
+      <div>
+        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-1">Problema Identificado</h4>
+        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{kaizen.problem}</p>
+      </div>
+
+      <div>
+        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-1">Sugestão de Melhoria</h4>
+        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{kaizen.suggestion}</p>
+      </div>
+
+      <div>
+        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-1">Benefícios Esperados</h4>
+        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{kaizen.benefits}</p>
+      </div>
+
+      {!showFeedback && (
+        <div className="flex gap-3 pt-2">
+          <Button
+            variant="success"
+            onClick={() => handleAction('approve')}
+            disabled={kaizen.status === 'approved'}
+          >
+            <Check className="w-4 h-4 mr-2" />
+            Aprovar Kaizen (+10 pts)
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => handleAction('reject')}
+            disabled={kaizen.status === 'rejected'}
+          >
+            <X className="w-4 h-4 mr-2" />
+            Reprovar
+          </Button>
+          <Button variant="secondary" onClick={() => handleAction('review')}>
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Solicitar Ajustes
+          </Button>
+        </div>
+      )}
+
+      {showFeedback && (
+        <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <Textarea
+            label={actionType === 'reject' ? 'Motivo da Reprovação' : 'Feedback para Ajustes'}
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows={3}
+            required
+          />
+          <div className="flex gap-2">
+            <Button onClick={handleSubmitFeedback}>Confirmar Envio</Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowFeedback(false);
+                setFeedback('');
+              }}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="border-t border-gray-200 pt-4">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3">Comentários e Histórico de Feedback</h4>
+        <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              className={`p-3 rounded-lg text-xs ${
+                comment.is_feedback ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-bold text-gray-900">
+                  {comment.profiles?.full_name || 'Usuário'}
+                </span>
+                {comment.is_feedback && (
+                  <span className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-800 font-bold rounded">
+                    Feedback Oficial Admin
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-700">{comment.content}</p>
+              <p className="text-[10px] text-gray-400 mt-1">
+                {new Date(comment.created_at).toLocaleString('pt-BR')}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Textarea
+            placeholder="Escreva um comentário ou instrução..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            rows={2}
+          />
+          <Button onClick={onAddComment} disabled={!newComment.trim()}>
+            Enviar
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

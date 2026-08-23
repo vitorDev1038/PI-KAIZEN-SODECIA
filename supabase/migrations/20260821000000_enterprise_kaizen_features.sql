@@ -161,6 +161,11 @@ END $$;
 -- Now set NOT NULL constraints and add UNIQUE constraint
 DO $$
 BEGIN
+  -- First, populate NULL values with defaults for existing rows
+  UPDATE badges SET title = 'Badge ' || id::text WHERE title IS NULL;
+  UPDATE badges SET description = 'Badge description' WHERE description IS NULL;
+  UPDATE badges SET icon = 'Award' WHERE icon IS NULL;
+  
   -- Set NOT NULL on required columns
   ALTER TABLE badges ALTER COLUMN title SET NOT NULL;
   ALTER TABLE badges ALTER COLUMN description SET NOT NULL;

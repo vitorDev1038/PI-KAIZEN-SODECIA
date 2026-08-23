@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Lightbulb, RefreshCw } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 
 interface LoginProps {
   onToggleRegister: () => void;
@@ -14,7 +14,6 @@ export function Login({ onToggleRegister }: LoginProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [setupLoading, setSetupLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

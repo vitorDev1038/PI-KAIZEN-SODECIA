@@ -164,11 +164,18 @@ END $$;
 -- Set NOT NULL constraints
 DO $$
 BEGIN
+  -- First, populate NULL values with defaults for existing rows
+  UPDATE badges SET title = 'Badge ' || id::text WHERE title IS NULL;
+  UPDATE badges SET description = 'Badge description' WHERE description IS NULL;
+  UPDATE badges SET icon = 'Award' WHERE icon IS NULL;
+  
+  -- Now set NOT NULL
   ALTER TABLE badges ALTER COLUMN title SET NOT NULL;
   ALTER TABLE badges ALTER COLUMN description SET NOT NULL;
   ALTER TABLE badges ALTER COLUMN icon SET NOT NULL;
   ALTER TABLE badges ALTER COLUMN code SET NOT NULL;
   
+  -- Add unique constraint on code if it doesn't exist
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint
     WHERE conname = 'badges_code_unique'
