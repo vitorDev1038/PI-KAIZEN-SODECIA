@@ -132,9 +132,16 @@ CREATE TABLE IF NOT EXISTS badges (
   created_at timestamptz DEFAULT now()
 );
 
--- Add all columns conditionally
+-- Add all columns conditionally (checking actual column names)
 DO $$
 BEGIN
+  -- Check if 'name' exists (old schema) or 'title' (new schema)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'name') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'title') THEN
+      ALTER TABLE badges ADD COLUMN name text;
+    END IF;
+  END IF;
+  
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'title') THEN
     ALTER TABLE badges ADD COLUMN title text;
   END IF;
@@ -161,16 +168,25 @@ BEGIN
   END IF;
 END $$;
 
--- Set NOT NULL constraints
+-- Populate NULL values BEFORE setting NOT NULL
+UPDATE badges SET name = COALESCE(title, 'Badge ' || id::text) WHERE name IS NULL;
+UPDATE badges SET title = COALESCE(name, 'Badge ' || id::text) WHERE title IS NULL;
+UPDATE badges SET description = COALESCE(description, 'Badge description') WHERE description IS NULL;
+UPDATE badges SET icon = COALESCE(icon, 'Award') WHERE icon IS NULL;
+
+-- Set NOT NULL constraints (try both name and title for compatibility)
 DO $$
 BEGIN
-  -- First, populate NULL values with defaults for existing rows
-  UPDATE badges SET title = 'Badge ' || id::text WHERE title IS NULL;
-  UPDATE badges SET description = 'Badge description' WHERE description IS NULL;
-  UPDATE badges SET icon = 'Award' WHERE icon IS NULL;
+  -- If 'name' column exists, set it NOT NULL
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'name') THEN
+    ALTER TABLE badges ALTER COLUMN name SET NOT NULL;
+  END IF;
   
-  -- Now set NOT NULL
-  ALTER TABLE badges ALTER COLUMN title SET NOT NULL;
+  -- If 'title' column exists, set it NOT NULL
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'title') THEN
+    ALTER TABLE badges ALTER COLUMN title SET NOT NULL;
+  END IF;
+  
   ALTER TABLE badges ALTER COLUMN description SET NOT NULL;
   ALTER TABLE badges ALTER COLUMN icon SET NOT NULL;
   ALTER TABLE badges ALTER COLUMN code SET NOT NULL;
@@ -195,15 +211,46 @@ BEGIN
   END IF;
 END $$;
 
--- Insert badges
-INSERT INTO badges (code, title, description, icon, points_required, color) VALUES
-  ('FIRST_KAIZEN', 'Primeiro Passo', 'Submeteu sua primeira ideia de melhoria Kaizen', 'Sparkles', 0, 'blue'),
-  ('BRONZE_CONTRIBUTOR', 'Inovador Bronze', 'Alcançou 30 pontos em melhorias aprovadas', 'Award', 30, 'amber'),
-  ('SILVER_CONTRIBUTOR', 'Inovador Prata', 'Alcançou 70 pontos em melhorias aprovadas', 'ShieldCheck', 70, 'slate'),
-  ('GOLD_CONTRIBUTOR', 'Inovador Ouro', 'Alcançou 150 pontos e liderança no ranking', 'Trophy', 150, 'yellow'),
-  ('ROI_CHAMPION', 'Campeão de Economia', 'Criou um Kaizen com economia acima de R$ 5.000', 'DollarSign', 0, 'emerald'),
-  ('SAFETY_GUARDIAN', 'Guardião da Segurança', 'Kaizen aprovado na categoria Segurança do Trabalho', 'Shield', 0, 'red')
-ON CONFLICT (code) DO NOTHING;
+-- Insert badges (using dynamic column detection)
+DO $$
+DECLARE
+  has_name_col boolean;
+  has_title_col boolean;
+BEGIN
+  -- Check which columns exist
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'name'
+  ) INTO has_name_col;
+  
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'title'
+  ) INTO has_title_col;
+  
+  -- Insert based on schema
+  IF has_name_col AND NOT has_title_col THEN
+    -- Old schema: uses 'name' instead of 'title'
+    INSERT INTO badges (code, name, description, icon, points_required, color) VALUES
+      ('FIRST_KAIZEN', 'Primeiro Passo', 'Submeteu sua primeira ideia de melhoria Kaizen', 'Sparkles', 0, 'blue'),
+      ('BRONZE_CONTRIBUTOR', 'Inovador Bronze', 'Alcançou 30 pontos em melhorias aprovadas', 'Award', 30, 'amber'),
+      ('SILVER_CONTRIBUTOR', 'Inovador Prata', 'Alcançou 70 pontos em melhorias aprovadas', 'ShieldCheck', 70, 'slate'),
+      ('GOLD_CONTRIBUTOR', 'Inovador Ouro', 'Alcançou 150 pontos e liderança no ranking', 'Trophy', 150, 'yellow'),
+      ('ROI_CHAMPION', 'Campeão de Economia', 'Criou um Kaizen com economia acima de R$ 5.000', 'DollarSign', 0, 'emerald'),
+      ('SAFETY_GUARDIAN', 'Guardião da Segurança', 'Kaizen aprovado na categoria Segurança do Trabalho', 'Shield', 0, 'red')
+    ON CONFLICT (code) DO NOTHING;
+  ELSE
+    -- New schema: uses 'title'
+    INSERT INTO badges (code, title, description, icon, points_required, color) VALUES
+      ('FIRST_KAIZEN', 'Primeiro Passo', 'Submeteu sua primeira ideia de melhoria Kaizen', 'Sparkles', 0, 'blue'),
+      ('BRONZE_CONTRIBUTOR', 'Inovador Bronze', 'Alcançou 30 pontos em melhorias aprovadas', 'Award', 30, 'amber'),
+      ('SILVER_CONTRIBUTOR', 'Inovador Prata', 'Alcançou 70 pontos em melhorias aprovadas', 'ShieldCheck', 70, 'slate'),
+      ('GOLD_CONTRIBUTOR', 'Inovador Ouro', 'Alcançou 150 pontos e liderança no ranking', 'Trophy', 150, 'yellow'),
+      ('ROI_CHAMPION', 'Campeão de Economia', 'Criou um Kaizen com economia acima de R$ 5.000', 'DollarSign', 0, 'emerald'),
+      ('SAFETY_GUARDIAN', 'Guardião da Segurança', 'Kaizen aprovado na categoria Segurança do Trabalho', 'Shield', 0, 'red')
+    ON CONFLICT (code) DO NOTHING;
+  END IF;
+END $$;
 
 -- 5. Create user_badges table
 CREATE TABLE IF NOT EXISTS user_badges (
