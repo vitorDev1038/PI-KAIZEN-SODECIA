@@ -50,9 +50,11 @@ supabase/migrations/20260821000000_enterprise_kaizen_features.sql
 Clique em **RUN** (Ctrl/Cmd + Enter)
 
 **Erros esperados e como ignorar:**
-- `relation "departments" already exists` → OK, pode ignorar
-- `relation "badges" already exists` → OK, pode ignorar
-- `policy "..." already exists` → OK, pode ignorar
+- `relation "departments" already exists` → ✅ OK, pode ignorar
+- `relation "badges" already exists` → ✅ OK, pode ignorar  
+- `relation "notifications" already exists` → ✅ OK, pode ignorar
+- `policy "..." already exists` → ✅ OK, pode ignorar
+- `constraint "badges_code_unique" already exists` → ✅ OK, pode ignorar
 
 ### Passo 3: Aplique a Migration de Segurança
 
@@ -282,15 +284,18 @@ ORDER BY c.created_at ASC;
 
 ### Erro: "column does not exist"
 
-❌ **Problema:** Migration anterior não foi aplicada completamente
+❌ **Problema:** Migration anterior não foi aplicada completamente OU tabela já existia com schema diferente
 
 **Solução:**
 1. Aplicar migrations na ordem correta (ver topo deste guia)
-2. Verificar qual migration está faltando no histórico:
-   ```sql
-   SELECT * FROM supabase_migrations.schema_migrations
-   ORDER BY version;
-   ```
+2. Se erro persistir, as migrations agora são **totalmente idempotentes** — simplesmente rode novamente:
+   - Elas verificam se colunas/tabelas/policies já existem antes de criar
+   - Populam dados padrão em colunas novas (ex: `badges.code`)
+   - Seguras para re-executar quantas vezes necessário
+
+**Exemplo de erro resolvido:**
+- ❌ `column "code" contains null values` → ✅ Agora popula com `BADGE_<id>` antes de set NOT NULL
+- ❌ `column "kaizen_id" does not exist` → ✅ Agora verifica existência antes de criar índice
 
 ### Erro: "policy already exists"
 
