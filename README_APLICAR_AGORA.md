@@ -25,6 +25,7 @@ Vai mostrar mensagens tipo:
 - ✅ `CREATE TABLE`
 - ✅ `CREATE INDEX`
 - ✅ `CREATE POLICY`
+- ✅ `UPDATE X rows` (populando valores NULL em badges)
 - ⚠️ `already exists` ← **NORMAL, pode ignorar**
 
 No final, vai mostrar 2 tabelas de verificação com os índices e policies criados.
