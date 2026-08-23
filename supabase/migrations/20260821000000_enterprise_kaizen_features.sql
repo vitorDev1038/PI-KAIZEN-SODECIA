@@ -120,31 +120,59 @@ CREATE POLICY "Admins can delete action plans"
 -- 4. Create badges table & user_badges
 CREATE TABLE IF NOT EXISTS badges (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title text NOT NULL,
-  description text NOT NULL,
-  icon text NOT NULL,
-  points_required integer DEFAULT 0,
-  color text DEFAULT 'blue',
   created_at timestamptz DEFAULT now()
 );
 
--- Add code column if it doesn't exist (idempotent)
+-- Add all columns conditionally (idempotent for any existing schema)
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public'
-    AND table_name = 'badges'
-    AND column_name = 'code'
-  ) THEN
-    -- Add column as nullable first
+  -- Add title
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'title') THEN
+    ALTER TABLE badges ADD COLUMN title text;
+  END IF;
+  
+  -- Add description
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'description') THEN
+    ALTER TABLE badges ADD COLUMN description text;
+  END IF;
+  
+  -- Add icon
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'icon') THEN
+    ALTER TABLE badges ADD COLUMN icon text;
+  END IF;
+  
+  -- Add points_required
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'points_required') THEN
+    ALTER TABLE badges ADD COLUMN points_required integer DEFAULT 0;
+  END IF;
+  
+  -- Add color
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'color') THEN
+    ALTER TABLE badges ADD COLUMN color text DEFAULT 'blue';
+  END IF;
+  
+  -- Add code (with population for existing rows)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'code') THEN
     ALTER TABLE badges ADD COLUMN code text;
-    
-    -- Update existing rows with generated codes if any exist
     UPDATE badges SET code = 'BADGE_' || id::text WHERE code IS NULL;
-    
-    -- Now make it NOT NULL and UNIQUE
-    ALTER TABLE badges ALTER COLUMN code SET NOT NULL;
+  END IF;
+END $$;
+
+-- Now set NOT NULL constraints and add UNIQUE constraint
+DO $$
+BEGIN
+  -- Set NOT NULL on required columns
+  ALTER TABLE badges ALTER COLUMN title SET NOT NULL;
+  ALTER TABLE badges ALTER COLUMN description SET NOT NULL;
+  ALTER TABLE badges ALTER COLUMN icon SET NOT NULL;
+  ALTER TABLE badges ALTER COLUMN code SET NOT NULL;
+  
+  -- Add unique constraint on code if it doesn't exist
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'badges_code_unique'
+    AND conrelid = 'public.badges'::regclass
+  ) THEN
     ALTER TABLE badges ADD CONSTRAINT badges_code_unique UNIQUE (code);
   END IF;
 END $$;

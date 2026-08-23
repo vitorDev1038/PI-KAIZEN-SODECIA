@@ -300,18 +300,29 @@ BEGIN
 END $$;
 
 -- ============================================================
--- 10. VACUUM ANALYZE (REFRESH QUERY PLANNER STATISTICS)
+-- 10. REFRESH QUERY PLANNER STATISTICS
 -- ============================================================
 
-VACUUM ANALYZE profiles;
-VACUUM ANALYZE kaizens;
-VACUUM ANALYZE comments;
+-- Note: VACUUM cannot run inside a transaction block (Dashboard limitation)
+-- Run manually after migration if needed:
+-- VACUUM ANALYZE profiles;
+-- VACUUM ANALYZE kaizens;
+-- VACUUM ANALYZE comments;
 
--- Vacuum enterprise tables if they exist
+-- Alternatively, use ANALYZE which works in transactions:
+ANALYZE profiles;
+ANALYZE kaizens;
+ANALYZE comments;
+
+-- Analyze enterprise tables if they exist
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN
-    VACUUM ANALYZE notifications;
+    ANALYZE notifications;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'action_plans') THEN
+    ANALYZE action_plans;
   END IF;
 END $$;
 
