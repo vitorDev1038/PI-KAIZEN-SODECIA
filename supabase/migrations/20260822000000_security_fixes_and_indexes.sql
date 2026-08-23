@@ -68,45 +68,98 @@ CREATE POLICY "users_create_own_profile"
   WITH CHECK (auth.uid() = id);
 
 -- ============================================================
--- 3. CREATE SECURE RLS POLICY FOR NOTIFICATIONS
+-- 3. CREATE SECURE RLS POLICY FOR NOTIFICATIONS (CONDITIONAL)
 -- ============================================================
 
 -- Users can only insert notifications for themselves OR admins can insert for anyone
-CREATE POLICY "insert_own_or_admin_notifications"
-  ON notifications FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    auth.uid() = user_id
-    OR EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
-    )
-  );
+-- Only create if notifications table exists
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public'
+    AND table_name = 'notifications'
+  ) THEN
+    -- Drop old policy if exists
+    DROP POLICY IF EXISTS "Authenticated users can insert notifications" ON notifications;
+    
+    -- Create new secure policy
+    CREATE POLICY "insert_own_or_admin_notifications"
+      ON notifications FOR INSERT
+      TO authenticated
+      WITH CHECK (
+        auth.uid() = user_id
+        OR EXISTS (
+          SELECT 1 FROM profiles
+          WHERE profiles.id = auth.uid()
+          AND profiles.role = 'admin'
+        )
+      );
+  END IF;
+END $$;
 
 -- ============================================================
 -- 4. CREATE MISSING FOREIGN KEY INDEXES (CRITICAL FOR PERFORMANCE)
 -- ============================================================
 
--- Kaizens table foreign keys
+-- Kaizens table foreign keys (base schema)
 CREATE INDEX IF NOT EXISTS kaizens_category_id_idx ON kaizens (category_id);
-CREATE INDEX IF NOT EXISTS kaizens_department_id_idx ON kaizens (department_id);
 CREATE INDEX IF NOT EXISTS kaizens_employee_id_idx ON kaizens (employee_id);
+
+-- Kaizens table foreign keys (enterprise features - conditional)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'kaizens'
+    AND column_name = 'department_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS kaizens_department_id_idx ON kaizens (department_id);
+  END IF;
+END $$;
 
 -- Comments table foreign keys
 CREATE INDEX IF NOT EXISTS comments_kaizen_id_idx ON comments (kaizen_id);
 CREATE INDEX IF NOT EXISTS comments_user_id_idx ON comments (user_id);
 
--- Action plans table foreign key
-CREATE INDEX IF NOT EXISTS action_plans_kaizen_id_idx ON action_plans (kaizen_id);
+-- Action plans table foreign key (enterprise features - conditional)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public'
+    AND table_name = 'action_plans'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS action_plans_kaizen_id_idx ON action_plans (kaizen_id);
+  END IF;
+END $$;
 
--- User badges table foreign keys
-CREATE INDEX IF NOT EXISTS user_badges_user_id_idx ON user_badges (user_id);
-CREATE INDEX IF NOT EXISTS user_badges_badge_id_idx ON user_badges (badge_id);
+-- User badges table foreign keys (enterprise features - conditional)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public'
+    AND table_name = 'user_badges'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS user_badges_user_id_idx ON user_badges (user_id);
+    CREATE INDEX IF NOT EXISTS user_badges_badge_id_idx ON user_badges (badge_id);
+  END IF;
+END $$;
 
--- Notifications table foreign keys
-CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications (user_id);
-CREATE INDEX IF NOT EXISTS notifications_kaizen_id_idx ON notifications (kaizen_id);
+-- Notifications table foreign keys (enterprise features - conditional)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public'
+    AND table_name = 'notifications'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications (user_id);
+    CREATE INDEX IF NOT EXISTS notifications_kaizen_id_idx ON notifications (kaizen_id);
+  END IF;
+END $$;
 
 -- ============================================================
 -- 5. PARTIAL INDEXES FOR COMMON QUERIES (PERFORMANCE BOOST)
@@ -117,15 +170,39 @@ CREATE INDEX IF NOT EXISTS kaizens_pending_created_idx
   ON kaizens (created_at DESC)
   WHERE status = 'pending';
 
--- Active kaizens (exclude completed/rejected from main queries)
-CREATE INDEX IF NOT EXISTS kaizens_active_employee_idx
-  ON kaizens (employee_id, status, created_at DESC)
-  WHERE status NOT IN ('rejected', 'completed');
+-- Active kaizens (exclude completed/rejected from main queries - conditional on department_id)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'kaizens'
+    AND column_name = 'department_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS kaizens_active_employee_idx
+      ON kaizens (employee_id, status, created_at DESC)
+      WHERE status NOT IN ('rejected', 'completed');
+  ELSE
+    -- Without department_id, simpler index
+    CREATE INDEX IF NOT EXISTS kaizens_active_employee_idx
+      ON kaizens (employee_id, created_at DESC)
+      WHERE status NOT IN ('rejected', 'completed');
+  END IF;
+END $$;
 
--- Unread notifications (common user query)
-CREATE INDEX IF NOT EXISTS notifications_unread_user_idx
-  ON notifications (user_id, created_at DESC)
-  WHERE read = false;
+-- Unread notifications (common user query - conditional on notifications table)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public'
+    AND table_name = 'notifications'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS notifications_unread_user_idx
+      ON notifications (user_id, created_at DESC)
+      WHERE read = false;
+  END IF;
+END $$;
 
 -- ============================================================
 -- 6. COMPOSITE INDEXES FOR MULTI-COLUMN FILTERS
@@ -174,25 +251,39 @@ END $$;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles FORCE ROW LEVEL SECURITY;
 
--- Force RLS on all other tables
+-- Force RLS on base schema tables
 ALTER TABLE kaizens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kaizens FORCE ROW LEVEL SECURITY;
 
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
-
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments FORCE ROW LEVEL SECURITY;
 
-ALTER TABLE action_plans ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
+-- Force RLS on enterprise feature tables (conditional)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'departments') THEN
+    ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'action_plans') THEN
+    ALTER TABLE action_plans ENABLE ROW LEVEL SECURITY;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'badges') THEN
+    ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'user_badges') THEN
+    ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN
+    ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
+  END IF;
+END $$;
 
 -- ============================================================
 -- 10. VACUUM ANALYZE (REFRESH QUERY PLANNER STATISTICS)
@@ -201,7 +292,14 @@ ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
 VACUUM ANALYZE profiles;
 VACUUM ANALYZE kaizens;
 VACUUM ANALYZE comments;
-VACUUM ANALYZE notifications;
+
+-- Vacuum enterprise tables if they exist
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN
+    VACUUM ANALYZE notifications;
+  END IF;
+END $$;
 
 -- ============================================================
 -- NOTES:
