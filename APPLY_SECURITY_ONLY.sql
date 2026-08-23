@@ -215,22 +215,16 @@ END $$;
 DO $$
 DECLARE
   has_name_col boolean;
-  has_title_col boolean;
 BEGIN
-  -- Check which columns exist
+  -- Check if 'name' column exists (indicates old schema)
   SELECT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'name'
   ) INTO has_name_col;
   
-  SELECT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'title'
-  ) INTO has_title_col;
-  
-  -- Insert based on schema
-  IF has_name_col AND NOT has_title_col THEN
-    -- Old schema: uses 'name' instead of 'title'
+  -- Insert based on schema (checking for 'name' column presence)
+  IF has_name_col THEN
+    -- Schema uses 'name' column
     INSERT INTO badges (code, name, description, icon, points_required, color) VALUES
       ('FIRST_KAIZEN', 'Primeiro Passo', 'Submeteu sua primeira ideia de melhoria Kaizen', 'Sparkles', 0, 'blue'),
       ('BRONZE_CONTRIBUTOR', 'Inovador Bronze', 'Alcançou 30 pontos em melhorias aprovadas', 'Award', 30, 'amber'),
@@ -240,7 +234,7 @@ BEGIN
       ('SAFETY_GUARDIAN', 'Guardião da Segurança', 'Kaizen aprovado na categoria Segurança do Trabalho', 'Shield', 0, 'red')
     ON CONFLICT (code) DO NOTHING;
   ELSE
-    -- New schema: uses 'title'
+    -- Schema uses 'title' column
     INSERT INTO badges (code, title, description, icon, points_required, color) VALUES
       ('FIRST_KAIZEN', 'Primeiro Passo', 'Submeteu sua primeira ideia de melhoria Kaizen', 'Sparkles', 0, 'blue'),
       ('BRONZE_CONTRIBUTOR', 'Inovador Bronze', 'Alcançou 30 pontos em melhorias aprovadas', 'Award', 30, 'amber'),
