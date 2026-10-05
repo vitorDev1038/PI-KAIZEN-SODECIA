@@ -23,6 +23,7 @@ import {
   QrCode,
   UserCheck,
   AlertCircle,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
@@ -314,7 +315,7 @@ export function GamificationPage() {
           </div>
           <h1 className="text-3xl font-extrabold">Mural de Reconhecimento & Pontos</h1>
           <p className="text-blue-100 text-sm mt-1 max-w-xl">
-            Ganhe 10 pontos a cada Kaizen aprovado. Desbloqueie conquistas, resgate prêmios e gerencie seus tickets!
+            Ganhe 10 pontos a cada Kaizen aprovado. Desbloqueie conquistas, resgate prêmios e gerencie seus cupons!
           </p>
         </div>
         <div className="hidden sm:flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
@@ -361,17 +362,19 @@ export function GamificationPage() {
           Catálogo de Recompensas
         </button>
 
-        <button
-          onClick={() => setActiveTab('my_tickets')}
-          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'my_tickets'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <Ticket className="w-4 h-4" />
-          Meus Tickets / Cupons ({userTickets.length})
-        </button>
+        {!isAdmin && (
+          <button
+            onClick={() => setActiveTab('my_tickets')}
+            className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'my_tickets'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Ticket className="w-4 h-4" />
+            Meus Tickets / Cupons ({userTickets.length})
+          </button>
+        )}
 
         {isAdmin && (
           <button
@@ -546,17 +549,17 @@ export function GamificationPage() {
         </div>
       )}
 
-      {/* Tab 4: Meus Tickets (User Ticket History) */}
-      {activeTab === 'my_tickets' && (
+      {/* Tab 4: Meus Tickets (Employee Only) */}
+      {!isAdmin && activeTab === 'my_tickets' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Ticket className="w-5 h-5 text-blue-600" />
-                Seus Tickets e Cupons de Resgate
+                Seus Tickets e Cupons Resgatados
               </h2>
               <p className="text-xs text-gray-500">
-                Apresente o código do ticket ativo no RH da Sodecia para retirar seu prêmio.
+                Apresente o código do ticket no RH da Sodecia para retirar seu prêmio.
               </p>
             </div>
           </div>
