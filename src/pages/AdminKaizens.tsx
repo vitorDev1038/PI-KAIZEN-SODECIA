@@ -58,12 +58,30 @@ export function AdminKaizens() {
 
   const fetchKaizens = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('kaizens')
       .select('*, category:categories(*), profile:profiles(*), department:departments(*)')
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
+    // Fallback if department or category table/relation does not exist in DB
+    if (error) {
+      const fallbackResult = await supabase
+        .from('kaizens')
+        .select('*, category:categories(*), profile:profiles(*)')
+        .order('created_at', { ascending: false });
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+    }
+
+    if (error) {
+      const basicResult = await supabase
+        .from('kaizens')
+        .select('*, profile:profiles(*)')
+        .order('created_at', { ascending: false });
+      data = basicResult.data;
+    }
+
+    if (data) {
       setKaizens(data as KaizenWithDetails[]);
     }
     setLoading(false);

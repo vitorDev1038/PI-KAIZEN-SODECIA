@@ -115,17 +115,28 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
 
       let { error } = await supabase.from('kaizens').insert(kaizenPayload);
 
-      // If insert failed because department_id column is missing in DB, retry without department_id key
-      if (error && kaizenPayload.department_id) {
-        console.warn('Retrying Kaizen submission without department_id:', error);
-        delete kaizenPayload.department_id;
-        const retryResult = await supabase.from('kaizens').insert(kaizenPayload);
-        error = retryResult.error;
+      // Self-healing retry: if DB is missing any column (code PGRST204), dynamically strip missing columns and retry
+      let retriesLeft = 10;
+      let strippedColumns: string[] = [];
+
+      while (error && error.code === 'PGRST204' && retriesLeft > 0) {
+        retriesLeft--;
+        const match = error.message?.match(/Could not find the '([^']+)' column/i);
+        if (match && match[1] && Object.prototype.hasOwnProperty.call(kaizenPayload, match[1])) {
+          const missingCol = match[1];
+          console.warn(`Removing missing DB column '${missingCol}' from payload and retrying...`);
+          strippedColumns.push(missingCol);
+          delete kaizenPayload[missingCol];
+          const retryRes = await supabase.from('kaizens').insert(kaizenPayload);
+          error = retryRes.error;
+        } else {
+          break;
+        }
       }
 
       if (error) {
         console.error('Error submitting kaizen:', error);
-        toast.error(`Erro ao enviar Kaizen: ${error.message || 'Verifique as tabelas no Supabase'}`);
+        toast.error(`Erro no banco: ${error.message || 'Execute o script SETUP_DATABASE.sql no Supabase'}`);
         setLoading(false);
         return;
       }

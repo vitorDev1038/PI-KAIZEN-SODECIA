@@ -38,9 +38,22 @@ export function AdminDashboard() {
   }, []);
 
   const fetchDashboardData = async () => {
-    const { data: kaizens } = await supabase
+    let { data: kaizens, error } = await supabase
       .from('kaizens')
       .select('*, category:categories(*), profile:profiles(*), department:departments(*)');
+
+    if (error) {
+      const fb = await supabase
+        .from('kaizens')
+        .select('*, category:categories(*), profile:profiles(*)');
+      kaizens = fb.data;
+      error = fb.error;
+    }
+
+    if (error) {
+      const fbBasic = await supabase.from('kaizens').select('*');
+      kaizens = fbBasic.data;
+    }
 
     if (kaizens) {
       const now = new Date();
