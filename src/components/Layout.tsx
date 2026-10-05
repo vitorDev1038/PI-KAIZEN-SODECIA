@@ -61,7 +61,7 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => onPageChange('dashboard')}>
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-sm">
+              <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center font-bold text-white shadow-sm">
                 <Lightbulb className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -110,11 +110,11 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
                   onClick={() => onPageChange(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors ${
                     isActive
-                      ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold shadow-sm border border-blue-100 dark:border-blue-800'
+                      ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 font-semibold shadow-sm border border-primary-100 dark:border-primary-800'
                       : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-slate-400'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-slate-400'}`} />
                   {item.name}
                 </button>
               );
@@ -138,7 +138,7 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
               key={item.id}
               onClick={() => onPageChange(item.id)}
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                isActive ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                isActive ? 'text-primary-600 dark:text-primary-400 font-semibold' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Icon className="w-5 h-5" />

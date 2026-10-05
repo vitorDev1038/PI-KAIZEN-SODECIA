@@ -11,11 +11,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400',
-      success: 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800',
-      danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
-      ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
+      primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm',
+      secondary: 'bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-slate-100 hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400',
+      success: 'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-sm',
+      danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm',
+      ghost: 'bg-transparent text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 active:bg-gray-200',
     };
 
     const sizes = {

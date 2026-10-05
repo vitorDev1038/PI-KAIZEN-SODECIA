@@ -102,10 +102,10 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
       {/* Header Title Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {isKaizensTab ? 'Meus Kaizens Submetidos' : 'Início'}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-slate-400 mt-1">
             {isKaizensTab
               ? 'Acompanhe o status, comentários e impacto de todas as suas propostas Kaizen.'
               : `Bem-vindo, ${profile?.full_name || 'Colaborador'}! Continue contribuindo com suas ideias de melhoria.`}
@@ -131,8 +131,8 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">{stat.label}</p>
-                    <p className="text-2xl font-black text-gray-900 mt-1">{stat.value}</p>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase">{stat.label}</p>
+                    <p className="text-2xl font-black text-gray-900 dark:text-white mt-1">{stat.value}</p>
                   </div>
                   <div
                     className={`w-11 h-11 rounded-xl flex items-center justify-center ${
@@ -160,16 +160,16 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
 
       {/* Kaizens Section / List View */}
       <div className="space-y-4 pt-2">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-600" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary-600 dark:text-primary-400" />
             {isKaizensTab ? 'Histórico de Propostas Kaizen' : 'Suas Últimas Ideias'}
           </h2>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
             {/* Search Input */}
             <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500" />
               <Input
                 type="text"
                 placeholder="Buscar ideia..."
@@ -180,11 +180,11 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
             </div>
 
             {/* Status Filter Tabs */}
-            <div className="flex items-center bg-gray-100 p-1 rounded-lg w-full sm:w-auto overflow-x-auto">
+            <div className="flex items-center bg-gray-100 dark:bg-slate-900 p-1 rounded-lg w-full sm:w-auto overflow-x-auto border border-gray-200/50 dark:border-slate-700/60">
               <button
                 onClick={() => setStatusFilter('all')}
                 className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
-                  statusFilter === 'all' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  statusFilter === 'all' ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Todos ({kaizens.length})
@@ -192,7 +192,7 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
               <button
                 onClick={() => setStatusFilter('approved')}
                 className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
-                  statusFilter === 'approved' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  statusFilter === 'approved' ? 'bg-white dark:bg-slate-800 text-green-600 dark:text-green-400 shadow-sm' : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Aprovados
@@ -200,7 +200,7 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
               <button
                 onClick={() => setStatusFilter('pending')}
                 className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
-                  statusFilter === 'pending' ? 'bg-white text-amber-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  statusFilter === 'pending' ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Em Análise
@@ -208,7 +208,7 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
               <button
                 onClick={() => setStatusFilter('rejected')}
                 className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
-                  statusFilter === 'rejected' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  statusFilter === 'rejected' ? 'bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 shadow-sm' : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Recusados
@@ -220,8 +220,8 @@ export function EmployeeDashboard({ activeTab = 'dashboard' }: EmployeeDashboard
         {loading ? (
           <Card>
             <CardBody className="text-center py-12">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-xs text-gray-500">Carregando suas propostas Kaizen...</p>
+              <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-xs text-gray-500 dark:text-slate-400">Carregando suas propostas Kaizen...</p>
             </CardBody>
           </Card>
         ) : (
