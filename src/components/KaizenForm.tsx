@@ -92,10 +92,8 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
 
       const resolvedDepId = await resolveDepartmentId(formData.department_id, departments);
 
-      const { error } = await supabase.from('kaizens').insert({
+      const kaizenPayload: Record<string, any> = {
         title: formData.title,
-        category_id: formData.category_id || null,
-        department_id: resolvedDepId,
         problem: formData.problem,
         suggestion: formData.suggestion,
         benefits: formData.benefits,
@@ -105,17 +103,44 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
         impact_level: formData.impact_level,
         employee_id: profile.id,
         image_url: imageUrl,
-      });
+      };
 
-      if (error) throw error;
+      if (formData.category_id) {
+        kaizenPayload.category_id = formData.category_id;
+      }
 
-      // Auto notify admins about new Kaizen submission
-      await supabase.from('notifications').insert({
-        user_id: profile.id,
-        title: 'Kaizen Submetido!',
-        message: `Seu Kaizen "${formData.title}" foi recebido e está aguardando avaliação da gestão Sodecia.`,
-        type: 'info',
-      });
+      if (resolvedDepId) {
+        kaizenPayload.department_id = resolvedDepId;
+      }
+
+      let { error } = await supabase.from('kaizens').insert(kaizenPayload);
+
+      // If insert failed because department_id column is missing in DB, retry without department_id key
+      if (error && kaizenPayload.department_id) {
+        console.warn('Retrying Kaizen submission without department_id:', error);
+        delete kaizenPayload.department_id;
+        const retryResult = await supabase.from('kaizens').insert(kaizenPayload);
+        error = retryResult.error;
+      }
+
+      if (error) {
+        console.error('Error submitting kaizen:', error);
+        toast.error(`Erro ao enviar Kaizen: ${error.message || 'Verifique as tabelas no Supabase'}`);
+        setLoading(false);
+        return;
+      }
+
+      // Auto notify admins about new Kaizen submission (non-blocking)
+      try {
+        await supabase.from('notifications').insert({
+          user_id: profile.id,
+          title: 'Kaizen Submetido!',
+          message: `Seu Kaizen "${formData.title}" foi recebido e está aguardando avaliação da gestão Sodecia.`,
+          type: 'info',
+        });
+      } catch {
+        // Ignorar falha de notificação se a tabela não existir
+      }
 
       toast.success('Kaizen enviado com sucesso!');
       setFormData({
