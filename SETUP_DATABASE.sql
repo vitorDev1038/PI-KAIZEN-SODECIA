@@ -130,7 +130,17 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   updated_at timestamptz DEFAULT now()
 );
 
--- 9. HABILITAR RLS EM TODAS AS TABELAS
+-- 9. TABELA DE BADGES / CONQUISTAS (badges)
+CREATE TABLE IF NOT EXISTS public.badges (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text UNIQUE NOT NULL,
+  description text NOT NULL,
+  points_required integer NOT NULL DEFAULT 10,
+  icon text DEFAULT 'Sparkles',
+  created_at timestamptz DEFAULT now()
+);
+
+-- 10. HABILITAR RLS EM TODAS AS TABELAS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
@@ -139,6 +149,20 @@ ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.action_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.badges ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Badges Access" ON public.badges;
+CREATE POLICY "Public Badges Access" ON public.badges FOR ALL USING (true) WITH CHECK (true);
+
+-- 11. INSERIR BADGES PADRÃO
+INSERT INTO public.badges (title, description, points_required, icon) VALUES
+  ('Primeiro Passo', 'Submeteu a primeira ideia Kaizen aprovada na Sodecia.', 10, 'Sparkles'),
+  ('Inovador Ativo', 'Acumulou 30 pontos em melhorias contínuas.', 30, 'Award'),
+  ('Especialista 5S', 'Acumulou 50 pontos com foco em organização e eficiência.', 50, 'ShieldCheck'),
+  ('Kaizen Master', 'Alcançou a marca impressionante de 100 pontos.', 100, 'Trophy'),
+  ('Economista Sodecia', 'Implementou ideia de alto impacto financeiro na planta.', 150, 'DollarSign'),
+  ('Campeão EHS & Segurança', 'Alcançou 200 pontos garantindo ambiente de trabalho seguro.', 200, 'Shield')
+ON CONFLICT (title) DO NOTHING;
 
 -- 10. LIBERAR PERMISSÕES RLS SEM BLOQUEIOS
 DROP POLICY IF EXISTS "Public Profiles Access" ON public.profiles;

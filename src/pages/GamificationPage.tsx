@@ -3,9 +3,85 @@ import { supabase } from '../lib/supabase';
 import type { Profile, BadgeItem } from '../lib/database.types';
 import { Card, CardBody } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Trophy, Award, Sparkles, ShieldCheck, DollarSign, Shield, Gift, Star, CheckCircle } from 'lucide-react';
+import { Modal } from '../components/ui/Modal';
+import {
+  Trophy,
+  Award,
+  Sparkles,
+  ShieldCheck,
+  DollarSign,
+  Shield,
+  Gift,
+  Star,
+  CheckCircle,
+  Printer,
+  QrCode,
+  Ticket,
+  Check,
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
+
+const DEFAULT_BADGES: BadgeItem[] = [
+  {
+    id: 'badge-1',
+    title: 'Primeiro Passo',
+    description: 'Submeteu a primeira ideia Kaizen aprovada na Sodecia.',
+    points_required: 10,
+    icon: 'Sparkles',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'badge-2',
+    title: 'Inovador Ativo',
+    description: 'Acumulou 30 pontos em melhorias contínuas.',
+    points_required: 30,
+    icon: 'Award',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'badge-3',
+    title: 'Especialista 5S',
+    description: 'Acumulou 50 pontos com foco em organização e eficiência.',
+    points_required: 50,
+    icon: 'ShieldCheck',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'badge-4',
+    title: 'Kaizen Master',
+    description: 'Alcançou a marca impressionante de 100 pontos.',
+    points_required: 100,
+    icon: 'Trophy',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'badge-5',
+    title: 'Economista Sodecia',
+    description: 'Implementou ideia de alto impacto financeiro na planta.',
+    points_required: 150,
+    icon: 'DollarSign',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'badge-6',
+    title: 'Campeão EHS & Segurança',
+    description: 'Alcançou 200 pontos garantindo ambiente de trabalho seguro.',
+    points_required: 200,
+    icon: 'Shield',
+    created_at: new Date().toISOString(),
+  },
+];
+
+interface TicketVoucher {
+  code: string;
+  rewardTitle: string;
+  description: string;
+  pointsDeducted: number;
+  remainingPoints: number;
+  date: string;
+  userName: string;
+}
 
 export function GamificationPage() {
   const { profile } = useAuth();
@@ -13,6 +89,7 @@ export function GamificationPage() {
   const [topUsers, setTopUsers] = useState<Profile[]>([]);
   const [badges, setBadges] = useState<BadgeItem[]>([]);
   const [activeTab, setActiveTab] = useState<'ranking' | 'badges' | 'rewards'>('ranking');
+  const [ticketVoucher, setTicketVoucher] = useState<TicketVoucher | null>(null);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -20,50 +97,141 @@ export function GamificationPage() {
   }, []);
 
   const fetchLeaderboard = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('role', 'employee')
-      .order('points', { ascending: false })
-      .limit(10);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'employee')
+        .order('points', { ascending: false })
+        .limit(10);
 
-    if (data) {
-      setTopUsers(data);
+      if (data && data.length > 0) {
+        setTopUsers(data);
+      }
+    } catch {
+      // Ignore fallback
     }
   };
 
   const fetchBadges = async () => {
-    const { data } = await supabase.from('badges').select('*').order('points_required');
-    if (data) {
-      setBadges(data);
+    try {
+      const { data, error } = await supabase.from('badges').select('*').order('points_required');
+      if (!error && data && data.length > 0) {
+        setBadges(data);
+        return;
+      }
+    } catch {
+      // Ignore fallback
     }
+    setBadges(DEFAULT_BADGES);
   };
 
   const rewards = [
-    { id: 1, title: 'Garrafa Térmica Exclusiva Sodecia', points: 30, icon: Gift, description: 'Squeeze inox com a logo Sodecia Kaizen' },
-    { id: 2, title: 'Voucher Almoço Especial', points: 50, icon: Star, description: 'Almoço VIP no restaurante executivo' },
-    { id: 3, title: 'Camisa Polo Sodecia Kaizen Team', points: 80, icon: Award, description: 'Edição limitada para colaboradores inovadores' },
-    { id: 4, title: 'Folga no Dia do Aniversário', points: 120, icon: Sparkles, description: 'Dia livre remunerado no seu aniversário' },
+    {
+      id: 1,
+      title: 'Garrafa Térmica Exclusiva Sodecia',
+      points: 30,
+      icon: Gift,
+      description: 'Squeeze inox com a logo Sodecia Kaizen',
+    },
+    {
+      id: 2,
+      title: 'Voucher Almoço Especial',
+      points: 50,
+      icon: Star,
+      description: 'Almoço VIP no restaurante executivo Sodecia',
+    },
+    {
+      id: 3,
+      title: 'Camisa Polo Sodecia Kaizen Team',
+      points: 80,
+      icon: Award,
+      description: 'Edição limitada para colaboradores inovadores',
+    },
+    {
+      id: 4,
+      title: 'Folga no Dia do Aniversário',
+      points: 120,
+      icon: Sparkles,
+      description: 'Dia livre remunerado no seu aniversário',
+    },
   ];
 
-  const handleRedeem = (rewardTitle: string, pointsNeeded: number) => {
+  const handleRedeem = async (rewardTitle: string, description: string, pointsNeeded: number) => {
     if (!profile) return;
-    if ((profile.points || 0) < pointsNeeded) {
-      toast.error(`Você precisa de ${pointsNeeded} pontos para resgatar este prêmio.`);
+
+    const currentPoints = profile.points || 0;
+    if (currentPoints < pointsNeeded) {
+      toast.error(`Você precisa de ${pointsNeeded} pontos para resgatar este prêmio (você tem ${currentPoints} pts).`);
       return;
     }
-    toast.success(`Solicitação de resgate do prêmio "${rewardTitle}" enviada ao RH/Sodecia!`);
+
+    if (!window.confirm(`Confirma o resgate do prêmio "${rewardTitle}" por ${pointsNeeded} pontos?`)) {
+      return;
+    }
+
+    const newPoints = currentPoints - pointsNeeded;
+    const ticketCode = `SOD-TICK-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    try {
+      // Deduct points in DB
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ points: newPoints })
+        .eq('id', profile.id);
+
+      if (profileError) throw profileError;
+
+      // Create notification in DB
+      try {
+        await supabase.from('notifications').insert({
+          user_id: profile.id,
+          title: 'Prêmio Resgatado!',
+          message: `Você resgatou "${rewardTitle}". Apresente o código ${ticketCode} no RH para retirar seu prêmio.`,
+          type: 'success',
+        });
+      } catch {
+        // Notification optional
+      }
+
+      // Update local profile points
+      profile.points = newPoints;
+
+      // Open Ticket Voucher Modal
+      setTicketVoucher({
+        code: ticketCode,
+        rewardTitle,
+        description,
+        pointsDeducted: pointsNeeded,
+        remainingPoints: newPoints,
+        date: new Date().toLocaleDateString('pt-BR'),
+        userName: profile.full_name || 'Colaborador Sodecia',
+      });
+
+      toast.success(`Prêmio "${rewardTitle}" resgatado com sucesso! ${pointsNeeded} pontos deduzidos.`);
+      fetchLeaderboard();
+    } catch (err: any) {
+      console.error('Error redeeming reward:', err);
+      toast.error('Não foi possível processar o resgate. Verifique a conexão com o Supabase.');
+    }
   };
 
   const getBadgeIcon = (iconName: string) => {
     switch (iconName) {
-      case 'Sparkles': return <Sparkles className="w-6 h-6 text-blue-600" />;
-      case 'Award': return <Award className="w-6 h-6 text-amber-600" />;
-      case 'ShieldCheck': return <ShieldCheck className="w-6 h-6 text-slate-600" />;
-      case 'Trophy': return <Trophy className="w-6 h-6 text-yellow-500" />;
-      case 'DollarSign': return <DollarSign className="w-6 h-6 text-emerald-600" />;
-      case 'Shield': return <Shield className="w-6 h-6 text-red-600" />;
-      default: return <Award className="w-6 h-6 text-blue-600" />;
+      case 'Sparkles':
+        return <Sparkles className="w-6 h-6 text-blue-600" />;
+      case 'Award':
+        return <Award className="w-6 h-6 text-amber-600" />;
+      case 'ShieldCheck':
+        return <ShieldCheck className="w-6 h-6 text-slate-600" />;
+      case 'Trophy':
+        return <Trophy className="w-6 h-6 text-yellow-500" />;
+      case 'DollarSign':
+        return <DollarSign className="w-6 h-6 text-emerald-600" />;
+      case 'Shield':
+        return <Shield className="w-6 h-6 text-red-600" />;
+      default:
+        return <Award className="w-6 h-6 text-blue-600" />;
     }
   };
 
@@ -81,16 +249,16 @@ export function GamificationPage() {
           </p>
         </div>
         <div className="hidden sm:flex flex-col items-center justify-center bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-          <span className="text-xs text-blue-200 uppercase font-semibold">Seus Pontos Atual</span>
+          <span className="text-xs text-blue-200 uppercase font-semibold">Seus Pontos Atuais</span>
           <span className="text-3xl font-black text-yellow-400">{profile?.points || 0} pts</span>
         </div>
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab('ranking')}
-          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'ranking'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -101,18 +269,18 @@ export function GamificationPage() {
         </button>
         <button
           onClick={() => setActiveTab('badges')}
-          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'badges'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
           <Award className="w-4 h-4" />
-          Medalhas & Conquistas
+          Medalhas & Conquistas ({badges.length})
         </button>
         <button
           onClick={() => setActiveTab('rewards')}
-          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'rewards'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -177,26 +345,34 @@ export function GamificationPage() {
           <Card>
             <CardBody className="p-0">
               <div className="divide-y divide-gray-200">
-                {topUsers.map((user, idx) => (
-                  <div key={user.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                        idx === 0 ? 'bg-yellow-100 text-yellow-800' :
-                        idx === 1 ? 'bg-slate-200 text-slate-800' :
-                        idx === 2 ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        #{idx + 1}
-                      </span>
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm">{user.full_name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                {topUsers.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">Nenhum colaborador ranqueado ainda.</div>
+                ) : (
+                  topUsers.map((user, idx) => (
+                    <div key={user.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <span
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                            idx === 0
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : idx === 1
+                              ? 'bg-slate-200 text-slate-800'
+                              : idx === 2
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          #{idx + 1}
+                        </span>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">{user.full_name}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
                       </div>
+                      <div className="font-black text-blue-900 text-base">{user.points || 0} pts</div>
                     </div>
-                    <div className="font-black text-blue-900 text-base">
-                      {user.points} pts
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardBody>
           </Card>
@@ -209,7 +385,10 @@ export function GamificationPage() {
           {badges.map((badge) => {
             const hasUnlocked = (profile?.points || 0) >= badge.points_required;
             return (
-              <Card key={badge.id} className={`transition-all ${hasUnlocked ? 'border-blue-300 shadow-md' : 'opacity-60 bg-gray-50'}`}>
+              <Card
+                key={badge.id}
+                className={`transition-all ${hasUnlocked ? 'border-blue-300 shadow-md bg-white' : 'opacity-65 bg-gray-50 border-gray-200'}`}
+              >
                 <CardBody className="p-5 flex items-start gap-4">
                   <div className={`p-3 rounded-xl ${hasUnlocked ? 'bg-blue-100' : 'bg-gray-200'}`}>
                     {getBadgeIcon(badge.icon)}
@@ -243,7 +422,7 @@ export function GamificationPage() {
             const Icon = rw.icon;
             const canAfford = (profile?.points || 0) >= rw.points;
             return (
-              <Card key={rw.id} className="flex flex-col justify-between">
+              <Card key={rw.id} className="flex flex-col justify-between hover:shadow-md transition-shadow">
                 <CardBody className="p-5 space-y-4">
                   <div className="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-bold">
                     <Icon className="w-6 h-6" />
@@ -258,7 +437,7 @@ export function GamificationPage() {
                       size="sm"
                       variant={canAfford ? 'primary' : 'secondary'}
                       disabled={!canAfford}
-                      onClick={() => handleRedeem(rw.title, rw.points)}
+                      onClick={() => handleRedeem(rw.title, rw.description, rw.points)}
                     >
                       {canAfford ? 'Resgatar' : 'Pontos Insuficientes'}
                     </Button>
@@ -268,6 +447,63 @@ export function GamificationPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Ticket Voucher Modal */}
+      {ticketVoucher && (
+        <Modal isOpen={!!ticketVoucher} onClose={() => setTicketVoucher(null)} title="Voucher de Resgate de Prêmio">
+          <div className="space-y-6 text-center py-2">
+            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <Ticket className="w-8 h-8" />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-black text-gray-900">Resgate Confirmado com Sucesso!</h2>
+              <p className="text-xs text-gray-500 mt-1">Apresente este código no RH da Sodecia para retirar seu prêmio.</p>
+            </div>
+
+            {/* Ticket Box */}
+            <div className="bg-gradient-to-br from-blue-900 to-indigo-900 text-white rounded-2xl p-6 shadow-xl space-y-4 border-2 border-yellow-400 relative overflow-hidden">
+              <div className="flex items-center justify-between text-xs text-blue-200 border-b border-blue-800 pb-2">
+                <span className="font-bold uppercase tracking-wider">SODECIA KAIZEN TICKET</span>
+                <span>{ticketVoucher.date}</span>
+              </div>
+
+              <div>
+                <p className="text-xs text-blue-300">CÓDIGO DE VALIDAÇÃO</p>
+                <p className="text-3xl font-black tracking-widest text-yellow-400 mt-1">{ticketVoucher.code}</p>
+              </div>
+
+              <div className="border-t border-blue-800 pt-3 text-left space-y-1">
+                <p className="text-xs text-blue-200">
+                  <strong>Colaborador:</strong> {ticketVoucher.userName}
+                </p>
+                <p className="text-xs text-blue-200">
+                  <strong>Prêmio:</strong> {ticketVoucher.rewardTitle}
+                </p>
+                <p className="text-xs text-blue-300 italic">{ticketVoucher.description}</p>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-blue-800 text-blue-200">
+                <span>Pontos Deduzidos: <strong>-{ticketVoucher.pointsDeducted} pts</strong></span>
+                <span>Saldo Restante: <strong>{ticketVoucher.remainingPoints} pts</strong></span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  window.print();
+                }}
+                className="flex items-center gap-2"
+              >
+                <Printer className="w-4 h-4" /> Imprimir / Guardar Ticket
+              </Button>
+              <Button onClick={() => setTicketVoucher(null)}>Concluído</Button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

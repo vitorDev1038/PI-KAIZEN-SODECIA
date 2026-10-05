@@ -44,12 +44,13 @@ function AppContent() {
     if (!isAdmin) {
       switch (currentPage) {
         case 'dashboard':
+          return <EmployeeDashboard activeTab="dashboard" />;
         case 'kaizens':
-          return <EmployeeDashboard />;
+          return <EmployeeDashboard activeTab="kaizens" />;
         case 'gamification':
           return <GamificationPage />;
         default:
-          return <EmployeeDashboard />;
+          return <EmployeeDashboard activeTab="dashboard" />;
       }
     }
 
