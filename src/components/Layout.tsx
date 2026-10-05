@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { Button } from './ui/Button';
-import { Lightbulb, LogOut, LayoutDashboard, FileText, Users, Settings, Trophy } from 'lucide-react';
+import { Lightbulb, LogOut, LayoutDashboard, FileText, Users, Settings, Trophy, Sun, Moon } from 'lucide-react';
 
 export type PageType = 'dashboard' | 'kaizens' | 'gamification' | 'users' | 'settings';
 
@@ -14,9 +14,10 @@ interface LayoutProps {
 
 export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const { profile, signOut } = useAuth();
-  const { settings } = useSettings();
+  const { settings, toggleThemeMode } = useSettings();
 
   const isAdmin = profile?.role === 'admin';
+  const isDark = settings.themeMode === 'dark';
 
   const navigation = [
     {
@@ -54,8 +55,9 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const visibleNav = navigation.filter((item) => item.show);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 flex flex-col transition-colors duration-200">
+      {/* Header */}
+      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-40 transition-colors duration-200">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => onPageChange('dashboard')}>
@@ -63,20 +65,32 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
                 <Lightbulb className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{settings.institutionName}</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{settings.institutionName}</h1>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{profile?.full_name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{profile?.full_name}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">
                   {profile?.role === 'admin' ? 'Administrador / Gestão' : 'Colaborador Sodecia'}
                   {profile?.role === 'employee' && ` • ${profile.points} pts`}
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={signOut} title="Sair da Conta">
-                <LogOut className="w-4 h-4 text-gray-600" />
+
+              {/* Sun/Moon Theme Toggle Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleThemeMode}
+                title={isDark ? 'Mudar para Tema Claro' : 'Mudar para Tema Escuro'}
+                className="p-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+              >
+                {isDark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-600" />}
+              </Button>
+
+              <Button variant="ghost" size="sm" onClick={signOut} title="Sair da Conta" className="p-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800">
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -85,7 +99,7 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
 
       <div className="flex flex-1 pb-16 md:pb-0">
         {/* Desktop Sidebar Navigation */}
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] hidden md:block">
+        <aside className="w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 min-h-[calc(100vh-4rem)] hidden md:block transition-colors duration-200">
           <nav className="p-4 space-y-1.5">
             {visibleNav.map((item) => {
               const Icon = item.icon;
@@ -96,11 +110,11 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
                   onClick={() => onPageChange(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm border border-blue-100'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold shadow-sm border border-blue-100 dark:border-blue-800'
+                      : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-slate-400'}`} />
                   {item.name}
                 </button>
               );
@@ -115,7 +129,7 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 flex justify-around p-1.5 shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 z-50 flex justify-around p-1.5 shadow-lg">
         {visibleNav.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -124,7 +138,7 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
               key={item.id}
               onClick={() => onPageChange(item.id)}
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                isActive ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-900'
+                isActive ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Icon className="w-5 h-5" />

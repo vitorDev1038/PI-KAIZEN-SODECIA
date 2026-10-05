@@ -23,6 +23,8 @@ import {
   Mail,
   HelpCircle,
   RefreshCw,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export function AdminSettings() {
@@ -611,40 +613,100 @@ export function AdminSettings() {
       {/* Tab 4: Aparência & Tema */}
       {activeTab === 'theme' && (
         <Card>
-          <CardBody className="space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Personalização Visual e Cor de Destaque</h3>
-              <p className="text-xs text-gray-500">
-                Escolha o tom de destaque que melhor combina com a identidade visual da sua instituição.
+          <CardBody className="space-y-8">
+            {/* Dark/Light Mode Selector */}
+            <div className="space-y-3 border-b border-gray-200 dark:border-slate-700 pb-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Modo de Exibição (Tema do Sistema)</h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400">
+                Selecione o modo visual padrão. O tema escuro utiliza tons suaves de cinza e azul escuro para reduzir o cansaço visual.
               </p>
-            </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-              {[
-                { id: 'blue', label: 'Azul Kaizen', color: 'bg-blue-600' },
-                { id: 'emerald', label: 'Verde Sustentável', color: 'bg-emerald-600' },
-                { id: 'violet', label: 'Roxo Inovação', color: 'bg-violet-600' },
-                { id: 'amber', label: 'Laranja Energia', color: 'bg-amber-600' },
-                { id: 'rose', label: 'Rosa Corporativo', color: 'bg-rose-600' },
-                { id: 'indigo', label: 'Índigo Tech', color: 'bg-indigo-600' },
-              ].map((c) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <button
-                  key={c.id}
-                  onClick={() => setFormData({ ...formData, primaryColor: c.id as any })}
-                  className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
-                    formData.primaryColor === c.id
-                      ? 'border-gray-900 ring-2 ring-gray-900 bg-gray-50 font-bold'
-                      : 'border-gray-200 hover:bg-gray-50'
+                  type="button"
+                  onClick={async () => {
+                    setFormData({ ...formData, themeMode: 'light' });
+                    await updateSettings({ themeMode: 'light' });
+                    toast.addToast('Tema Claro aplicado com sucesso!', 'success');
+                  }}
+                  className={`p-5 rounded-xl border-2 flex items-center gap-4 transition-all ${
+                    formData.themeMode === 'light'
+                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 ring-2 ring-blue-500'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-300'
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-full ${c.color} shadow-sm`} />
-                  <span className="text-xs text-gray-800 text-center">{c.label}</span>
+                  <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
+                    <Sun className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-bold text-gray-900 dark:text-white text-sm">Tema Claro (Light)</h4>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Fundo limpo e branco com alto contraste.</p>
+                  </div>
                 </button>
-              ))}
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setFormData({ ...formData, themeMode: 'dark' });
+                    await updateSettings({ themeMode: 'dark' });
+                    toast.addToast('Tema Escuro aplicado com sucesso!', 'success');
+                  }}
+                  className={`p-5 rounded-xl border-2 flex items-center gap-4 transition-all ${
+                    formData.themeMode === 'dark'
+                      ? 'border-blue-600 bg-slate-900 text-white ring-2 ring-blue-500'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 bg-slate-900 text-white'
+                  }`}
+                >
+                  <div className="p-3 bg-slate-800 text-yellow-400 rounded-xl">
+                    <Moon className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-bold text-white text-sm">Tema Escuro (Dark)</h4>
+                    <p className="text-xs text-slate-400">Tons cinza e preto sofisticados para visão noturna.</p>
+                  </div>
+                </button>
+              </div>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <h4 className="text-xs font-bold text-gray-700 uppercase mb-2">Amostra do Botão Primário</h4>
+            {/* Primary Color Selector */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Cor de Destaque Primária</h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400">
+                Escolha o tom de destaque que melhor combina com a identidade visual da sua instituição.
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-2">
+                {[
+                  { id: 'blue', label: 'Azul Kaizen', color: 'bg-blue-600' },
+                  { id: 'emerald', label: 'Verde Sustentável', color: 'bg-emerald-600' },
+                  { id: 'violet', label: 'Roxo Inovação', color: 'bg-violet-600' },
+                  { id: 'amber', label: 'Laranja Energia', color: 'bg-amber-600' },
+                  { id: 'rose', label: 'Rosa Corporativo', color: 'bg-rose-600' },
+                  { id: 'indigo', label: 'Índigo Tech', color: 'bg-indigo-600' },
+                ].map((c) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={async () => {
+                      setFormData({ ...formData, primaryColor: c.id as any });
+                      await updateSettings({ primaryColor: c.id as any });
+                      toast.addToast(`Cor de destaque "${c.label}" aplicada!`, 'success');
+                    }}
+                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
+                      formData.primaryColor === c.id
+                        ? 'border-blue-600 ring-2 ring-blue-500 bg-blue-50/50 dark:bg-slate-700 font-bold'
+                        : 'border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full ${c.color} shadow-sm`} />
+                    <span className="text-xs text-gray-800 dark:text-slate-200 text-center">{c.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700">
+              <h4 className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase mb-2">Amostra do Botão Primário</h4>
               <button
                 className={`px-4 py-2 text-white font-medium rounded-lg shadow-sm ${
                   themeColorsMap[formData.primaryColor]?.bg || 'bg-blue-600'

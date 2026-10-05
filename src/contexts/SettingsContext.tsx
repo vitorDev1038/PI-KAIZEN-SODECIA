@@ -8,6 +8,7 @@ export interface SiteSettings {
   supportEmail: string;
   systemLanguage: string;
   primaryColor: 'blue' | 'emerald' | 'violet' | 'amber' | 'rose' | 'indigo';
+  themeMode: 'light' | 'dark';
   gamificationEnabled: boolean;
   pointsForSubmission: number;
   pointsForApproval: number;
@@ -27,6 +28,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   supportEmail: 'kaizen@sodecia.com',
   systemLanguage: 'pt-BR',
   primaryColor: 'blue',
+  themeMode: 'light',
   gamificationEnabled: true,
   pointsForSubmission: 10,
   pointsForApproval: 50,
@@ -45,6 +47,7 @@ interface SettingsContextType {
   settings: SiteSettings;
   loading: boolean;
   updateSettings: (newSettings: Partial<SiteSettings>) => Promise<{ error: Error | null }>;
+  toggleThemeMode: () => Promise<void>;
   resetSettings: () => Promise<void>;
 }
 
@@ -63,6 +66,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     return DEFAULT_SETTINGS;
   });
   const [loading, setLoading] = useState(true);
+
+  // Apply dark mode class on html tag whenever themeMode changes
+  useEffect(() => {
+    if (settings.themeMode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.themeMode]);
 
   useEffect(() => {
     fetchSettings();
@@ -93,6 +105,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setSettings(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 
+    // Immediately toggle HTML dark class if themeMode changed
+    if (updated.themeMode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     try {
       const { error } = await supabase
         .from('site_settings')
@@ -115,9 +134,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const toggleThemeMode = async () => {
+    const nextMode = settings.themeMode === 'dark' ? 'light' : 'dark';
+    await updateSettings({ themeMode: nextMode });
+  };
+
   const resetSettings = async () => {
     setSettings(DEFAULT_SETTINGS);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS));
+    document.documentElement.classList.remove('dark');
     try {
       await supabase
         .from('site_settings')
@@ -135,7 +160,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, loading, updateSettings, resetSettings }}>
+    <SettingsContext.Provider value={{ settings, loading, updateSettings, toggleThemeMode, resetSettings }}>
       {children}
     </SettingsContext.Provider>
   );

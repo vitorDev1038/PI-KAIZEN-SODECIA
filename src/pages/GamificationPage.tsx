@@ -4,6 +4,7 @@ import type { Profile, BadgeItem } from '../lib/database.types';
 import { Card, CardBody } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
 import {
   Trophy,
@@ -22,8 +23,8 @@ import {
   Clock,
   QrCode,
   UserCheck,
-  AlertCircle,
-  Check,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
@@ -34,6 +35,12 @@ import {
   getAllTickets,
   markTicketAsUsed,
 } from '../lib/tickets';
+import {
+  RewardItem,
+  fetchRewards,
+  createReward,
+  deleteReward,
+} from '../lib/rewards';
 
 const DEFAULT_BADGES: BadgeItem[] = [
   {
@@ -103,10 +110,20 @@ export function GamificationPage() {
   const toast = useToast();
   const [topUsers, setTopUsers] = useState<Profile[]>([]);
   const [badges, setBadges] = useState<BadgeItem[]>([]);
+  const [rewardsList, setRewardsList] = useState<RewardItem[]>([]);
   const [userTickets, setUserTickets] = useState<TicketItem[]>([]);
   const [allTicketsList, setAllTicketsList] = useState<TicketItem[]>([]);
   const [activeTab, setActiveTab] = useState<'ranking' | 'badges' | 'rewards' | 'my_tickets' | 'validate_tickets'>('ranking');
   const [ticketVoucher, setTicketVoucher] = useState<TicketVoucher | null>(null);
+
+  // Admin New Reward Modal State
+  const [showAddRewardModal, setShowAddRewardModal] = useState(false);
+  const [newRewardForm, setNewRewardForm] = useState({
+    title: '',
+    description: '',
+    points: 30,
+    icon: 'Gift',
+  });
 
   // Search input for RH validation tab
   const [searchTicketCode, setSearchTicketCode] = useState('');
@@ -117,6 +134,7 @@ export function GamificationPage() {
   useEffect(() => {
     fetchLeaderboard();
     fetchBadges();
+    loadRewardsData();
     if (profile) {
       loadUserTickets();
     }
@@ -124,6 +142,11 @@ export function GamificationPage() {
       loadAllTickets();
     }
   }, [profile, isAdmin]);
+
+  const loadRewardsData = async () => {
+    const list = await fetchRewards();
+    setRewardsList(list);
+  };
 
   const fetchLeaderboard = async () => {
     try {
@@ -166,36 +189,37 @@ export function GamificationPage() {
     setAllTicketsList(tickets);
   };
 
-  const rewards = [
-    {
-      id: 1,
-      title: 'Garrafa Térmica Exclusiva Sodecia',
-      points: 30,
-      icon: Gift,
-      description: 'Squeeze inox com a logo Sodecia Kaizen',
-    },
-    {
-      id: 2,
-      title: 'Voucher Almoço Especial',
-      points: 50,
-      icon: Star,
-      description: 'Almoço VIP no restaurante executivo Sodecia',
-    },
-    {
-      id: 3,
-      title: 'Camisa Polo Sodecia Kaizen Team',
-      points: 80,
-      icon: Award,
-      description: 'Edição limitada para colaboradores inovadores',
-    },
-    {
-      id: 4,
-      title: 'Folga no Dia do Aniversário',
-      points: 120,
-      icon: Sparkles,
-      description: 'Dia livre remunerado no seu aniversário',
-    },
-  ];
+  const handleCreateNewReward = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRewardForm.title.trim()) {
+      toast.error('Informe o título da recompensa.');
+      return;
+    }
+
+    try {
+      const created = await createReward({
+        title: newRewardForm.title.trim(),
+        description: newRewardForm.description.trim(),
+        points: Number(newRewardForm.points) || 10,
+        icon: newRewardForm.icon,
+      });
+
+      setRewardsList((prev) => [...prev, created]);
+      setShowAddRewardModal(false);
+      setNewRewardForm({ title: '', description: '', points: 30, icon: 'Gift' });
+      toast.success(`Nova recompensa "${created.title}" cadastrada com sucesso!`);
+    } catch {
+      toast.error('Erro ao cadastrar recompensa.');
+    }
+  };
+
+  const handleDeleteRewardItem = async (rewardId: string, rewardTitle: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir a recompensa "${rewardTitle}"?`)) return;
+
+    await deleteReward(rewardId);
+    setRewardsList((prev) => prev.filter((r) => r.id !== rewardId));
+    toast.success(`Recompensa "${rewardTitle}" removida.`);
+  };
 
   const handleRedeem = async (rewardTitle: string, description: string, pointsNeeded: number) => {
     if (!profile) return;
@@ -305,6 +329,27 @@ export function GamificationPage() {
     }
   };
 
+  const getRewardIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Gift':
+        return <Gift className="w-6 h-6" />;
+      case 'Star':
+        return <Star className="w-6 h-6" />;
+      case 'Award':
+        return <Award className="w-6 h-6" />;
+      case 'Sparkles':
+        return <Sparkles className="w-6 h-6" />;
+      case 'Trophy':
+        return <Trophy className="w-6 h-6" />;
+      case 'DollarSign':
+        return <DollarSign className="w-6 h-6" />;
+      case 'Shield':
+        return <Shield className="w-6 h-6" />;
+      default:
+        return <Gift className="w-6 h-6" />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -325,13 +370,13 @@ export function GamificationPage() {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex border-b border-gray-200 overflow-x-auto">
+      <div className="flex border-b border-gray-200 dark:border-slate-800 overflow-x-auto">
         <button
           onClick={() => setActiveTab('ranking')}
           className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'ranking'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
           }`}
         >
           <Trophy className="w-4 h-4" />
@@ -342,8 +387,8 @@ export function GamificationPage() {
           onClick={() => setActiveTab('badges')}
           className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'badges'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
           }`}
         >
           <Award className="w-4 h-4" />
@@ -354,12 +399,12 @@ export function GamificationPage() {
           onClick={() => setActiveTab('rewards')}
           className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'rewards'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
           }`}
         >
           <Gift className="w-4 h-4" />
-          Catálogo de Recompensas
+          Catálogo de Recompensas ({rewardsList.length})
         </button>
 
         {!isAdmin && (
@@ -367,8 +412,8 @@ export function GamificationPage() {
             onClick={() => setActiveTab('my_tickets')}
             className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'my_tickets'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
             }`}
           >
             <Ticket className="w-4 h-4" />
@@ -381,11 +426,11 @@ export function GamificationPage() {
             onClick={() => setActiveTab('validate_tickets')}
             className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'validate_tickets'
-                ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40'
+                : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
             }`}
           >
-            <UserCheck className="w-4 h-4 text-emerald-600" />
+            <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Validar Tickets (RH)
           </button>
         )}
@@ -398,27 +443,27 @@ export function GamificationPage() {
           {topUsers.length >= 3 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
               {/* 2nd Place */}
-              <Card className="order-2 sm:order-1 border-2 border-slate-300 bg-gradient-to-b from-slate-50 to-white text-center">
+              <Card className="order-2 sm:order-1 border-2 border-slate-300 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 text-center">
                 <CardBody className="py-6">
                   <div className="w-12 h-12 rounded-full bg-slate-200 text-slate-700 font-black text-xl flex items-center justify-center mx-auto mb-2 border-2 border-slate-400">
                     🥈
                   </div>
-                  <h3 className="font-bold text-gray-900">{topUsers[1].full_name}</h3>
-                  <p className="text-xs text-gray-500">{topUsers[1].email}</p>
-                  <span className="inline-block mt-3 px-3 py-1 bg-slate-100 text-slate-800 font-bold text-sm rounded-full">
+                  <h3 className="font-bold text-gray-900 dark:text-white">{topUsers[1].full_name}</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{topUsers[1].email}</p>
+                  <span className="inline-block mt-3 px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-sm rounded-full">
                     {topUsers[1].points} pts
                   </span>
                 </CardBody>
               </Card>
 
               {/* 1st Place */}
-              <Card className="order-1 sm:order-2 border-2 border-yellow-400 bg-gradient-to-b from-yellow-50 to-white text-center transform sm:-translate-y-2 shadow-lg">
+              <Card className="order-1 sm:order-2 border-2 border-yellow-400 bg-gradient-to-b from-yellow-50 to-white dark:from-slate-800 dark:to-slate-900 text-center transform sm:-translate-y-2 shadow-lg">
                 <CardBody className="py-8">
                   <div className="w-16 h-16 rounded-full bg-yellow-400 text-yellow-900 font-black text-2xl flex items-center justify-center mx-auto mb-2 border-4 border-yellow-300 shadow">
                     🥇
                   </div>
-                  <h3 className="font-extrabold text-lg text-gray-900">{topUsers[0].full_name}</h3>
-                  <p className="text-xs text-gray-500">{topUsers[0].email}</p>
+                  <h3 className="font-extrabold text-lg text-gray-900 dark:text-white">{topUsers[0].full_name}</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{topUsers[0].email}</p>
                   <span className="inline-block mt-3 px-4 py-1.5 bg-yellow-400 text-yellow-950 font-black text-base rounded-full shadow-sm">
                     {topUsers[0].points} pts
                   </span>
@@ -426,14 +471,14 @@ export function GamificationPage() {
               </Card>
 
               {/* 3rd Place */}
-              <Card className="order-3 border-2 border-amber-400 bg-gradient-to-b from-amber-50 to-white text-center">
+              <Card className="order-3 border-2 border-amber-400 bg-gradient-to-b from-amber-50 to-white dark:from-slate-800 dark:to-slate-900 text-center">
                 <CardBody className="py-6">
                   <div className="w-12 h-12 rounded-full bg-amber-200 text-amber-800 font-black text-xl flex items-center justify-center mx-auto mb-2 border-2 border-amber-400">
                     🥉
                   </div>
-                  <h3 className="font-bold text-gray-900">{topUsers[2].full_name}</h3>
-                  <p className="text-xs text-gray-500">{topUsers[2].email}</p>
-                  <span className="inline-block mt-3 px-3 py-1 bg-amber-100 text-amber-900 font-bold text-sm rounded-full">
+                  <h3 className="font-bold text-gray-900 dark:text-white">{topUsers[2].full_name}</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{topUsers[2].email}</p>
+                  <span className="inline-block mt-3 px-3 py-1 bg-amber-100 dark:bg-slate-700 text-amber-900 dark:text-slate-200 font-bold text-sm rounded-full">
                     {topUsers[2].points} pts
                   </span>
                 </CardBody>
@@ -444,12 +489,12 @@ export function GamificationPage() {
           {/* Full Table */}
           <Card>
             <CardBody className="p-0">
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-gray-200 dark:divide-slate-700">
                 {topUsers.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">Nenhum colaborador ranqueado ainda.</div>
+                  <div className="p-8 text-center text-gray-500 dark:text-slate-400">Nenhum colaborador ranqueado ainda.</div>
                 ) : (
                   topUsers.map((user, idx) => (
-                    <div key={user.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div key={user.id} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                       <div className="flex items-center gap-4">
                         <span
                           className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
@@ -459,17 +504,17 @@ export function GamificationPage() {
                               ? 'bg-slate-200 text-slate-800'
                               : idx === 2
                               ? 'bg-amber-100 text-amber-800'
-                              : 'bg-gray-100 text-gray-600'
+                              : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300'
                           }`}
                         >
                           #{idx + 1}
                         </span>
                         <div>
-                          <p className="font-semibold text-gray-900 text-sm">{user.full_name}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm">{user.full_name}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">{user.email}</p>
                         </div>
                       </div>
-                      <div className="font-black text-blue-900 text-base">{user.points || 0} pts</div>
+                      <div className="font-black text-blue-900 dark:text-blue-400 text-base">{user.points || 0} pts</div>
                     </div>
                   ))
                 )}
@@ -487,26 +532,26 @@ export function GamificationPage() {
             return (
               <Card
                 key={badge.id}
-                className={`transition-all ${hasUnlocked ? 'border-blue-300 shadow-md bg-white' : 'opacity-65 bg-gray-50 border-gray-200'}`}
+                className={`transition-all ${hasUnlocked ? 'border-blue-300 dark:border-blue-700 shadow-md bg-white dark:bg-slate-800' : 'opacity-65 bg-gray-50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700'}`}
               >
                 <CardBody className="p-5 flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${hasUnlocked ? 'bg-blue-100' : 'bg-gray-200'}`}>
+                  <div className={`p-3 rounded-xl ${hasUnlocked ? 'bg-blue-100 dark:bg-blue-950' : 'bg-gray-200 dark:bg-slate-700'}`}>
                     {getBadgeIcon(badge.icon)}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-gray-900 text-sm">{badge.title}</h3>
+                      <h3 className="font-bold text-gray-900 dark:text-white text-sm">{badge.title}</h3>
                       {hasUnlocked ? (
-                        <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                        <span className="text-[10px] bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" /> Conquistado
                         </span>
                       ) : (
-                        <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-bold">
+                        <span className="text-[10px] bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">
                           {badge.points_required} pts
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">{badge.description}</p>
+                    <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">{badge.description}</p>
                   </div>
                 </CardBody>
               </Card>
@@ -517,48 +562,79 @@ export function GamificationPage() {
 
       {/* Tab 3: Rewards Catalog */}
       {activeTab === 'rewards' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {rewards.map((rw) => {
-            const Icon = rw.icon;
-            const canAfford = (profile?.points || 0) >= rw.points;
-            return (
-              <Card key={rw.id} className="flex flex-col justify-between hover:shadow-md transition-shadow">
-                <CardBody className="p-5 space-y-4">
-                  <div className="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-bold">
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-sm">{rw.title}</h3>
-                    <p className="text-xs text-gray-500 mt-1">{rw.description}</p>
-                  </div>
-                  <div className="pt-2 flex items-center justify-between border-t border-gray-100">
-                    <span className="font-black text-amber-600 text-sm">{rw.points} pts</span>
-                    <Button
-                      size="sm"
-                      variant={canAfford ? 'primary' : 'secondary'}
-                      disabled={!canAfford}
-                      onClick={() => handleRedeem(rw.title, rw.description, rw.points)}
-                    >
-                      {canAfford ? 'Resgatar' : 'Pontos Insuficientes'}
-                    </Button>
-                  </div>
-                </CardBody>
-              </Card>
-            );
-          })}
+        <div className="space-y-4">
+          {/* Admin Header with Add Reward button */}
+          {isAdmin && (
+            <div className="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-base">Gerenciar Catálogo de Recompensas</h3>
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  Cadastre novos prêmios ou remova itens do catálogo disponível para os colaboradores.
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowAddRewardModal(true)}
+                className="flex items-center gap-2"
+                size="sm"
+              >
+                <Plus className="w-4 h-4" /> Cadastrar Nova Recompensa
+              </Button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {rewardsList.map((rw) => {
+              const canAfford = (profile?.points || 0) >= rw.points;
+              return (
+                <Card key={rw.id} className="flex flex-col justify-between hover:shadow-md transition-shadow relative">
+                  <CardBody className="p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded-xl flex items-center justify-center font-bold">
+                        {getRewardIcon(rw.icon)}
+                      </div>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteRewardItem(rw.id, rw.title)}
+                          className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                          title="Excluir Recompensa"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white text-sm">{rw.title}</h3>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{rw.description}</p>
+                    </div>
+                    <div className="pt-2 flex items-center justify-between border-t border-gray-100 dark:border-slate-700">
+                      <span className="font-black text-amber-600 dark:text-amber-400 text-sm">{rw.points} pts</span>
+                      <Button
+                        size="sm"
+                        variant={canAfford ? 'primary' : 'secondary'}
+                        disabled={!canAfford}
+                        onClick={() => handleRedeem(rw.title, rw.description, rw.points)}
+                      >
+                        {canAfford ? 'Resgatar' : 'Pontos Insuficientes'}
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       )}
 
       {/* Tab 4: Meus Tickets (Employee Only) */}
       {!isAdmin && activeTab === 'my_tickets' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
             <div>
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Ticket className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Seus Tickets e Cupons Resgatados
               </h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-slate-400">
                 Apresente o código do ticket no RH da Sodecia para retirar seu prêmio.
               </p>
             </div>
@@ -567,9 +643,9 @@ export function GamificationPage() {
           {userTickets.length === 0 ? (
             <Card>
               <CardBody className="text-center py-12 space-y-3">
-                <Ticket className="w-12 h-12 text-gray-300 mx-auto" />
-                <h3 className="text-base font-bold text-gray-700">Nenhum ticket resgatado ainda</h3>
-                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                <Ticket className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto" />
+                <h3 className="text-base font-bold text-gray-700 dark:text-slate-200">Nenhum ticket resgatado ainda</h3>
+                <p className="text-xs text-gray-500 dark:text-slate-400 max-w-sm mx-auto">
                   Acumule pontos aprovando ideias Kaizen e resgate prêmios no Catálogo de Recompensas.
                 </p>
                 <Button size="sm" onClick={() => setActiveTab('rewards')}>
@@ -585,39 +661,39 @@ export function GamificationPage() {
                   <Card
                     key={ticket.id}
                     className={`border-2 transition-all ${
-                      isUsed ? 'border-gray-200 bg-gray-50 opacity-75' : 'border-blue-400 bg-white shadow-md'
+                      isUsed ? 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 opacity-75' : 'border-blue-400 dark:border-blue-600 bg-white dark:bg-slate-800 shadow-md'
                     }`}
                   >
                     <CardBody className="p-5 space-y-3">
-                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-700 pb-3">
+                        <span className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                           SODECIA TICKET
                         </span>
                         {isUsed ? (
-                          <span className="text-xs font-bold bg-gray-200 text-gray-700 px-2.5 py-1 rounded-full flex items-center gap-1">
+                          <span className="text-xs font-bold bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-full flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5 text-gray-500" /> Utilizado / Entregue
                           </span>
                         ) : (
-                          <span className="text-xs font-bold bg-green-100 text-green-800 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse">
-                            <Clock className="w-3.5 h-3.5 text-green-600" /> Válido (Pronto p/ RH)
+                          <span className="text-xs font-bold bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                            <Clock className="w-3.5 h-3.5 text-green-600 dark:text-green-400" /> Válido (Pronto p/ RH)
                           </span>
                         )}
                       </div>
 
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-extrabold text-gray-900 text-base">{ticket.reward_title}</h3>
-                          <p className="text-xs text-gray-500">{ticket.reward_description}</p>
+                          <h3 className="font-extrabold text-gray-900 dark:text-white text-base">{ticket.reward_title}</h3>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">{ticket.reward_description}</p>
                         </div>
-                        <span className="font-black text-amber-600 text-sm whitespace-nowrap">
+                        <span className="font-black text-amber-600 dark:text-amber-400 text-sm whitespace-nowrap">
                           {ticket.points_spent} pts
                         </span>
                       </div>
 
-                      <div className="bg-gray-100 p-3 rounded-xl flex items-center justify-between border border-gray-200">
+                      <div className="bg-gray-100 dark:bg-slate-900 p-3 rounded-xl flex items-center justify-between border border-gray-200 dark:border-slate-700">
                         <div>
-                          <span className="text-[10px] text-gray-500 uppercase font-semibold">CÓDIGO DO TICKET</span>
-                          <p className="text-lg font-black text-blue-900 tracking-wider font-mono">{ticket.code}</p>
+                          <span className="text-[10px] text-gray-500 dark:text-slate-400 uppercase font-semibold">CÓDIGO DO TICKET</span>
+                          <p className="text-lg font-black text-blue-900 dark:text-blue-400 tracking-wider font-mono">{ticket.code}</p>
                         </div>
                         <Button
                           size="sm"
@@ -641,10 +717,10 @@ export function GamificationPage() {
                         </Button>
                       </div>
 
-                      <div className="text-[11px] text-gray-400 flex items-center justify-between pt-1">
+                      <div className="text-[11px] text-gray-400 dark:text-slate-500 flex items-center justify-between pt-1">
                         <span>Resgatado em: {new Date(ticket.created_at).toLocaleDateString('pt-BR')}</span>
                         {isUsed && ticket.used_at && (
-                          <span className="text-gray-500 font-medium">
+                          <span className="text-gray-500 dark:text-slate-400 font-medium">
                             Entregue em: {new Date(ticket.used_at).toLocaleDateString('pt-BR')}
                           </span>
                         )}
@@ -661,14 +737,14 @@ export function GamificationPage() {
       {/* Tab 5: Validate Tickets (RH / Admin Only) */}
       {isAdmin && activeTab === 'validate_tickets' && (
         <div className="space-y-6">
-          <Card className="border-2 border-emerald-500 bg-gradient-to-r from-emerald-50 to-teal-50">
+          <Card className="border-2 border-emerald-500 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40">
             <CardBody className="p-6 space-y-4">
               <div>
-                <h2 className="text-lg font-bold text-emerald-950 flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-emerald-600" />
+                <h2 className="text-lg font-bold text-emerald-950 dark:text-emerald-300 flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                   Validação & Baixa de Tickets (Recursos Humanos / Gestão)
                 </h2>
-                <p className="text-xs text-emerald-800 mt-0.5">
+                <p className="text-xs text-emerald-800 dark:text-emerald-400 mt-0.5">
                   Digite o código informado pelo colaborador para dar baixa e marcar o prêmio como entregue.
                 </p>
               </div>
@@ -681,7 +757,7 @@ export function GamificationPage() {
                     placeholder="Digite o código (ex: SOD-TICK-849201)..."
                     value={searchTicketCode}
                     onChange={(e) => setSearchTicketCode(e.target.value)}
-                    className="pl-9 font-mono font-bold uppercase tracking-wider bg-white"
+                    className="pl-9 font-mono font-bold uppercase tracking-wider bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
                   />
                 </div>
                 <Button
@@ -698,36 +774,36 @@ export function GamificationPage() {
           {/* All Tickets Table */}
           <Card>
             <CardBody className="space-y-4">
-              <h3 className="font-bold text-gray-900 text-base">Todos os Tickets Resgatados na Planta</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white text-base">Todos os Tickets Resgatados na Planta</h3>
 
-              <div className="divide-y divide-gray-200 border rounded-lg overflow-hidden">
+              <div className="divide-y divide-gray-200 dark:divide-slate-700 border dark:border-slate-700 rounded-lg overflow-hidden">
                 {allTicketsList.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">Nenhum ticket registrado no sistema.</div>
+                  <div className="p-8 text-center text-gray-500 dark:text-slate-400 text-sm">Nenhum ticket registrado no sistema.</div>
                 ) : (
                   allTicketsList.map((t) => {
                     const isUsed = t.status === 'used';
                     return (
                       <div
                         key={t.id}
-                        className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-gray-50"
+                        className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-gray-50 dark:hover:bg-slate-700/50"
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-extrabold text-blue-950 bg-blue-100 px-2 py-0.5 rounded text-sm">
+                            <span className="font-mono font-extrabold text-blue-950 dark:text-blue-300 bg-blue-100 dark:bg-blue-950 px-2 py-0.5 rounded text-sm">
                               {t.code}
                             </span>
                             {isUsed ? (
-                              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-bold">
+                              <span className="text-xs bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">
                                 Entregue
                               </span>
                             ) : (
-                              <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">
+                              <span className="text-xs bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 px-2 py-0.5 rounded-full font-bold">
                                 Pendente de Entrega
                               </span>
                             )}
                           </div>
-                          <p className="font-bold text-gray-900 text-sm">{t.reward_title}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="font-bold text-gray-900 dark:text-white text-sm">{t.reward_title}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">
                             Colaborador: <strong>{t.user_name || 'Desconhecido'}</strong> ({t.user_email}) • Data:{' '}
                             {new Date(t.created_at).toLocaleDateString('pt-BR')}
                           </p>
@@ -735,7 +811,7 @@ export function GamificationPage() {
 
                         <div>
                           {isUsed ? (
-                            <span className="text-xs text-gray-500 font-semibold italic">
+                            <span className="text-xs text-gray-500 dark:text-slate-400 font-semibold italic">
                               Entregue em {t.used_at ? new Date(t.used_at).toLocaleDateString('pt-BR') : ''}
                             </span>
                           ) : (
@@ -743,7 +819,7 @@ export function GamificationPage() {
                               size="sm"
                               variant="secondary"
                               onClick={() => handleValidateTicket(t.code)}
-                              className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 font-bold"
+                              className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 font-bold"
                             >
                               <Check className="w-4 h-4 mr-1" /> Dar Baixa / Entregar
                             </Button>
@@ -759,23 +835,82 @@ export function GamificationPage() {
         </div>
       )}
 
+      {/* Admin Modal: Cadastrar Nova Recompensa */}
+      {showAddRewardModal && (
+        <Modal
+          isOpen={showAddRewardModal}
+          onClose={() => setShowAddRewardModal(false)}
+          title="Cadastrar Nova Recompensa no Catálogo"
+        >
+          <form onSubmit={handleCreateNewReward} className="space-y-4">
+            <Input
+              label="Título do Prêmio"
+              placeholder="Ex: Fone Bluetooth Sodecia"
+              value={newRewardForm.title}
+              onChange={(e) => setNewRewardForm({ ...newRewardForm, title: e.target.value })}
+              required
+            />
+
+            <Input
+              label="Descrição do Prêmio"
+              placeholder="Ex: Headphone sem fio com estojo personalizado"
+              value={newRewardForm.description}
+              onChange={(e) => setNewRewardForm({ ...newRewardForm, description: e.target.value })}
+              required
+            />
+
+            <Input
+              label="Pontos Necessários para Resgate"
+              type="number"
+              min={1}
+              value={newRewardForm.points}
+              onChange={(e) => setNewRewardForm({ ...newRewardForm, points: parseInt(e.target.value) || 10 })}
+              required
+            />
+
+            <Select
+              label="Ícone da Recompensa"
+              value={newRewardForm.icon}
+              onChange={(e) => setNewRewardForm({ ...newRewardForm, icon: e.target.value })}
+              options={[
+                { value: 'Gift', label: '🎁 Presente / Objeto' },
+                { value: 'Star', label: '⭐ Estrela / VIP' },
+                { value: 'Award', label: '🎖️ Medalha / Vestuário' },
+                { value: 'Sparkles', label: '✨ Especial / Folga' },
+                { value: 'Trophy', label: '🏆 Troféu / Prêmio Máximo' },
+                { value: 'DollarSign', label: '💰 Vale / Cartão Compras' },
+                { value: 'Shield', label: '🛡️ Equipamento / EHS' },
+              ]}
+              required
+            />
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-slate-700">
+              <Button type="button" variant="secondary" onClick={() => setShowAddRewardModal(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Cadastrar Recompensa</Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
       {/* Ticket Voucher Modal */}
       {ticketVoucher && (
         <Modal isOpen={!!ticketVoucher} onClose={() => setTicketVoucher(null)} title="Voucher de Resgate de Prêmio">
           <div className="space-y-6 text-center py-2">
             <div
               className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-inner ${
-                ticketVoucher.status === 'used' ? 'bg-gray-100 text-gray-500' : 'bg-green-100 text-green-600'
+                ticketVoucher.status === 'used' ? 'bg-gray-100 dark:bg-slate-700 text-gray-500' : 'bg-green-100 dark:bg-green-950 text-green-600 dark:text-green-400'
               }`}
             >
               <Ticket className="w-8 h-8" />
             </div>
 
             <div>
-              <h2 className="text-xl font-black text-gray-900">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white">
                 {ticketVoucher.status === 'used' ? 'Ticket Utilizado / Entregue' : 'Voucher de Resgate Ativo'}
               </h2>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                 {ticketVoucher.status === 'used'
                   ? `Este prêmio foi entregue ao colaborador em ${
                       ticketVoucher.used_at ? new Date(ticketVoucher.used_at).toLocaleDateString('pt-BR') : 'data recente'
