@@ -180,10 +180,10 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Lightbulb className="w-5 h-5 text-blue-600" />
-          <h2 className="text-xl font-bold text-gray-900">Submeter Novo Kaizen (Melhoria Sodecia)</h2>
+          <Lightbulb className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Submeter Novo Kaizen (Melhoria Sodecia)</h2>
         </div>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
           Registre sua ideia de melhoria contínua, estimativa financeira e setor afetado.
         </p>
       </CardHeader>
@@ -249,9 +249,9 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
           />
 
           {/* Financial ROI and Effort/Impact */}
-          <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-4">
-            <h3 className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-              <DollarSign className="w-4 h-4 text-green-600" />
+          <div className="p-4 bg-primary-50/50 dark:bg-slate-900/60 rounded-xl border border-primary-100 dark:border-slate-700 space-y-4">
+            <h3 className="text-xs font-bold text-primary-900 dark:text-primary-300 uppercase tracking-wider flex items-center gap-1.5">
+              <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               Análise de Retorno sobre Investimento (ROI Estimado)
             </h3>
 
@@ -298,11 +298,11 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Anexar Imagem / Foto do Posto (opcional)
             </label>
             <div className="mt-1 flex items-center gap-2">
-              <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors">
+              <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg cursor-pointer transition-colors border border-gray-200 dark:border-slate-600">
                 <Upload className="w-4 h-4" />
                 <span className="text-sm">
                   {imageFile ? imageFile.name : 'Escolher foto ou desenho'}

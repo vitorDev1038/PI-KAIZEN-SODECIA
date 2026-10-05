@@ -25,12 +25,12 @@ export function KaizenA3Report({ kaizen }: KaizenA3ReportProps) {
   const netSavings = (kaizen.realized_savings || kaizen.estimated_savings || 0) - (kaizen.implementation_cost || 0);
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6 print:shadow-none print:border-none print:p-0">
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm space-y-6 print:shadow-none print:border-none print:p-0">
       {/* Action Bar (Hidden during print) */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4 print:hidden">
+      <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-700 pb-4 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Relatório A3 Kaizen - Padrão Industrial</h2>
-          <p className="text-xs text-gray-500">Documento de Gestão à Vista - {settings.institutionName}</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Relatório A3 Kaizen - Padrão Industrial</h2>
+          <p className="text-xs text-gray-500 dark:text-slate-400">Documento de Gestão à Vista - {settings.institutionName}</p>
         </div>
         <Button onClick={handlePrint} variant="primary">
           <Printer className="w-4 h-4 mr-2" />

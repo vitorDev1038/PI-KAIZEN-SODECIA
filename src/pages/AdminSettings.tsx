@@ -208,20 +208,20 @@ export function AdminSettings() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Building2 className="w-7 h-7 text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Building2 className="w-7 h-7 text-primary-600 dark:text-primary-400" />
             Configurações do Sistema & Instituição
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
             Personalize a identidade da empresa, regras de pontuação, tema e permissões da plataforma.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={handleReset} title="Restaurar Padrões">
-            <RotateCcw className="w-4 h-4 mr-2 text-gray-500" />
+            <RotateCcw className="w-4 h-4 mr-2 text-gray-500 dark:text-slate-400" />
             Restaurar
           </Button>
 
@@ -239,7 +239,7 @@ export function AdminSettings() {
       </div>
 
       {hasChanges && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 flex items-center justify-between">
+        <div className="p-4 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-300 flex items-center justify-between">
           <span className="text-sm font-medium flex items-center gap-2">
             ⚠️ Você tem alterações não salvas no formulário. Clique em "Salvar Alterações" para aplicar.
           </span>
@@ -250,13 +250,13 @@ export function AdminSettings() {
       )}
 
       {/* Tabs Bar */}
-      <div className="flex flex-wrap gap-2 border-b border-gray-200 bg-white p-2 rounded-xl shadow-sm">
+      <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 rounded-xl shadow-sm transition-colors">
         <button
           onClick={() => setActiveTab('identity')}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
             activeTab === 'identity'
-              ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200'
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 shadow-sm border border-primary-200 dark:border-primary-800 font-bold'
+              : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Building2 className="w-4 h-4" />
@@ -267,8 +267,8 @@ export function AdminSettings() {
           onClick={() => setActiveTab('gamification')}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
             activeTab === 'gamification'
-              ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200'
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 shadow-sm border border-primary-200 dark:border-primary-800 font-bold'
+              : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Award className="w-4 h-4" />
@@ -279,8 +279,8 @@ export function AdminSettings() {
           onClick={() => setActiveTab('workflow')}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
             activeTab === 'workflow'
-              ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200'
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 shadow-sm border border-primary-200 dark:border-primary-800 font-bold'
+              : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Sliders className="w-4 h-4" />
@@ -291,8 +291,8 @@ export function AdminSettings() {
           onClick={() => setActiveTab('theme')}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
             activeTab === 'theme'
-              ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200'
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 shadow-sm border border-primary-200 dark:border-primary-800 font-bold'
+              : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Palette className="w-4 h-4" />
@@ -303,8 +303,8 @@ export function AdminSettings() {
           onClick={() => setActiveTab('data')}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
             activeTab === 'data'
-              ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200'
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 shadow-sm border border-primary-200 dark:border-primary-800 font-bold'
+              : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -319,15 +319,15 @@ export function AdminSettings() {
             <Card>
               <CardBody className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">Identidade Institucional</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Identidade Institucional</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     Altere o nome e informações da instituição exibidos em todo o sistema, relatórios A3 e cabeçalhos.
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-slate-200 mb-1">
                       Nome da Instituição / Empresa *
                     </label>
                     <Input
@@ -337,14 +337,14 @@ export function AdminSettings() {
                       placeholder="Ex: Sodecia Kaizen, IFPB, Hospital São Lucas, etc."
                       required
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                       Este nome substitui o título nos menus, telas de login e relatórios exportados.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-1">
+                      <label className="block text-sm font-semibold text-gray-900 dark:text-slate-200 mb-1">
                         Sigla / Iniciais
                       </label>
                       <Input
@@ -354,11 +354,11 @@ export function AdminSettings() {
                         placeholder="Ex: SOD, KZN, IF"
                         maxLength={6}
                       />
-                      <p className="text-xs text-gray-500 mt-1">Exibido nos relatórios A3 impressos.</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Exibido nos relatórios A3 impressos.</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-1">
+                      <label className="block text-sm font-semibold text-gray-900 dark:text-slate-200 mb-1">
                         Símbolo Monetário
                       </label>
                       <Input
@@ -367,12 +367,12 @@ export function AdminSettings() {
                         onChange={(e) => setFormData({ ...formData, currencySymbol: e.target.value })}
                         placeholder="Ex: R$, $, €"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Usado para estimativas financeiras.</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Usado para estimativas financeiras.</p>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-slate-200 mb-1">
                       Subtítulo ou Slogan do Sistema
                     </label>
                     <Input
@@ -384,7 +384,7 @@ export function AdminSettings() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-slate-200 mb-1">
                       E-mail Institucional de Suporte
                     </label>
                     <Input
@@ -401,32 +401,32 @@ export function AdminSettings() {
 
           {/* Preview Panel */}
           <div>
-            <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50/50 to-white sticky top-20">
+            <Card className="border-2 border-primary-200 dark:border-slate-700 bg-gradient-to-br from-primary-50/50 to-white dark:from-slate-800 dark:to-slate-900 sticky top-20">
               <CardBody className="space-y-4">
-                <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-blue-600" />
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                   Pré-visualização do Cabeçalho
                 </h4>
 
-                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-sm">
+                    <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center font-bold text-white text-sm">
                       {formData.institutionAbbreviation || 'KZN'}
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-gray-900">
+                      <h2 className="text-base font-bold text-gray-900 dark:text-white">
                         {formData.institutionName || 'Nome da Instituição'}
                       </h2>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-slate-400">
                         {formData.institutionSubtitle || 'Portal de Melhorias'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 bg-blue-100/60 rounded-lg text-xs text-blue-900 space-y-1">
+                <div className="p-3 bg-primary-100/60 dark:bg-primary-950/70 rounded-lg text-xs text-primary-900 dark:text-primary-200 space-y-1 border border-primary-200 dark:border-primary-800">
                   <p className="font-semibold flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5 text-blue-700" /> Alterações ao Vivo
+                    <CheckCircle className="w-3.5 h-3.5 text-primary-700 dark:text-primary-300" /> Alterações ao Vivo
                   </p>
                   <p>
                     Ao salvar, esta nova identidade será aplicada imediatamente no menu principal, relatórios A3 e login.
@@ -443,10 +443,10 @@ export function AdminSettings() {
         <div className="space-y-6">
           <Card>
             <CardBody className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+              <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-slate-700">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Regras de Gamificação e Recompensas</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Regras de Gamificação e Recompensas</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     Defina quantos pontos os colaboradores ganham por cada etapa de submissão e aprovação.
                   </p>
                 </div>
@@ -458,8 +458,8 @@ export function AdminSettings() {
                     onChange={(e) => setFormData({ ...formData, gamificationEnabled: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  <span className="ml-3 text-sm font-semibold text-gray-900">
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                  <span className="ml-3 text-sm font-semibold text-gray-900 dark:text-slate-200">
                     {formData.gamificationEnabled ? 'Gamificação Ativada' : 'Gamificação Desativada'}
                   </span>
                 </label>
@@ -467,15 +467,15 @@ export function AdminSettings() {
 
               {formData.gamificationEnabled ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 space-y-3">
-                    <div className="flex items-center gap-2 text-blue-700 font-bold text-sm">
+                  <div className="bg-gray-50 dark:bg-slate-900/60 p-5 rounded-xl border border-gray-200 dark:border-slate-700 space-y-3">
+                    <div className="flex items-center gap-2 text-primary-700 dark:text-primary-400 font-bold text-sm">
                       <Award className="w-5 h-5" /> Submissão de Kaizen
                     </div>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-slate-400">
                       Pontos concedidos no momento em que o funcionário cadastra uma nova ideia.
                     </p>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Pontos por envio</label>
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">Pontos por envio</label>
                       <Input
                         type="number"
                         min={0}
@@ -485,15 +485,15 @@ export function AdminSettings() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm">
+                  <div className="bg-gray-50 dark:bg-slate-900/60 p-5 rounded-xl border border-gray-200 dark:border-slate-700 space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-sm">
                       <Award className="w-5 h-5" /> Aprovação pela Gestão
                     </div>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-slate-400">
                       Pontos adicionais quando o administrador aprova o Kaizen para implementação.
                     </p>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Pontos por aprovação</label>
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">Pontos por aprovação</label>
                       <Input
                         type="number"
                         min={0}
@@ -503,15 +503,15 @@ export function AdminSettings() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 space-y-3">
-                    <div className="flex items-center gap-2 text-amber-700 font-bold text-sm">
+                  <div className="bg-gray-50 dark:bg-slate-900/60 p-5 rounded-xl border border-gray-200 dark:border-slate-700 space-y-3">
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-sm">
                       <Award className="w-5 h-5" /> Conclusão & Resultado
                     </div>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-slate-400">
                       Bônus de pontos quando a melhoria é completamente finalizada na prática.
                     </p>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Pontos por conclusão</label>
+                      <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">Pontos por conclusão</label>
                       <Input
                         type="number"
                         min={0}
@@ -522,7 +522,7 @@ export function AdminSettings() {
                   </div>
                 </div>
               ) : (
-                <div className="p-6 bg-gray-100 rounded-xl text-center text-gray-500">
+                <div className="p-6 bg-gray-100 dark:bg-slate-900 rounded-xl text-center text-gray-500 dark:text-slate-400">
                   O sistema de gamificação e ranking de pontos está temporariamente oculto para os usuários.
                 </div>
               )}
@@ -535,13 +535,13 @@ export function AdminSettings() {
       {activeTab === 'workflow' && (
         <Card>
           <CardBody className="space-y-6">
-            <h3 className="text-lg font-bold text-gray-900">Políticas de Fluxo de Trabalho & Segurança</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Políticas de Fluxo de Trabalho & Segurança</h3>
 
-            <div className="space-y-4 divide-y divide-gray-200">
+            <div className="space-y-4 divide-y divide-gray-200 dark:divide-slate-700">
               <div className="pt-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Aprovação Automática de Kaizens</h4>
-                  <p className="text-xs text-gray-500">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Aprovação Automática de Kaizens</h4>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     Se ativado, Kaizens recém-criados passarão direto para o status "Em Progresso" sem análise prévia.
                   </p>
                 </div>
@@ -552,14 +552,14 @@ export function AdminSettings() {
                     onChange={(e) => setFormData({ ...formData, autoApproveKaizens: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                 </label>
               </div>
 
               <div className="pt-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Permitir Exclusão de Ideias por Funcionários</h4>
-                  <p className="text-xs text-gray-500">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Permitir Exclusão de Ideias por Funcionários</h4>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     Permite que o próprio criador do Kaizen apague a sugestão enquanto ela estiver pendente.
                   </p>
                 </div>
@@ -570,14 +570,14 @@ export function AdminSettings() {
                     onChange={(e) => setFormData({ ...formData, allowEmployeeKaizenDelete: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                 </label>
               </div>
 
               <div className="pt-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Notificações por E-mail</h4>
-                  <p className="text-xs text-gray-500">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Notificações por E-mail</h4>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     Enviar e-mail automático ao funcionário quando seu Kaizen for aprovado ou receber um comentário.
                   </p>
                 </div>
@@ -588,12 +588,12 @@ export function AdminSettings() {
                     onChange={(e) => setFormData({ ...formData, enableEmailNotifications: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                 </label>
               </div>
 
               <div className="pt-4 max-w-xs">
-                <label className="block text-sm font-semibold text-gray-900 mb-1">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-slate-200 mb-1">
                   Tamanho Máximo de Fotos (MB)
                 </label>
                 <Input
@@ -603,7 +603,7 @@ export function AdminSettings() {
                   value={formData.maxImageUploadMB}
                   onChange={(e) => setFormData({ ...formData, maxImageUploadMB: parseInt(e.target.value) || 5 })}
                 />
-                <p className="text-xs text-gray-500 mt-1">Limite por arquivo enviado nas imagens de Antes/Depois.</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Limite por arquivo enviado nas imagens de Antes/Depois.</p>
               </div>
             </div>
           </CardBody>
@@ -631,7 +631,7 @@ export function AdminSettings() {
                   }}
                   className={`p-5 rounded-xl border-2 flex items-center gap-4 transition-all ${
                     formData.themeMode === 'light'
-                      ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 ring-2 ring-blue-500'
+                      ? 'border-primary-600 bg-primary-50/50 dark:bg-primary-950/40 ring-2 ring-primary-500'
                       : 'border-gray-200 dark:border-slate-700 hover:border-gray-300'
                   }`}
                 >
@@ -653,7 +653,7 @@ export function AdminSettings() {
                   }}
                   className={`p-5 rounded-xl border-2 flex items-center gap-4 transition-all ${
                     formData.themeMode === 'dark'
-                      ? 'border-blue-600 bg-slate-900 text-white ring-2 ring-blue-500'
+                      ? 'border-primary-600 bg-slate-900 text-white ring-2 ring-primary-500'
                       : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 bg-slate-900 text-white'
                   }`}
                 >
@@ -694,7 +694,7 @@ export function AdminSettings() {
                     }}
                     className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
                       formData.primaryColor === c.id
-                        ? 'border-blue-600 ring-2 ring-blue-500 bg-blue-50/50 dark:bg-slate-700 font-bold'
+                        ? 'border-primary-600 ring-2 ring-primary-500 bg-primary-50/50 dark:bg-slate-700 font-bold'
                         : 'border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
                     }`}
                   >
@@ -709,7 +709,7 @@ export function AdminSettings() {
               <h4 className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase mb-2">Amostra do Botão Primário</h4>
               <button
                 className={`px-4 py-2 text-white font-medium rounded-lg shadow-sm ${
-                  themeColorsMap[formData.primaryColor]?.bg || 'bg-blue-600'
+                  themeColorsMap[formData.primaryColor]?.bg || 'bg-primary-600'
                 }`}
               >
                 Exemplo de Botão - {formData.institutionName}
@@ -725,11 +725,11 @@ export function AdminSettings() {
           {/* Gerenciar Categorias */}
           <Card>
             <CardBody className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Layers className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Layers className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 Categorias de Kaizen
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-slate-400">
                 Cadastre e gerencie as áreas de foco (ex: Segurança, Qualidade, Ergonomia).
               </p>
 
@@ -745,7 +745,7 @@ export function AdminSettings() {
                   type="color"
                   value={newCatColor}
                   onChange={(e) => setNewCatColor(e.target.value)}
-                  className="w-10 h-10 p-1 border rounded-lg cursor-pointer"
+                  className="w-10 h-10 p-1 border rounded-lg cursor-pointer bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700"
                   title="Cor da categoria"
                 />
                 <Button type="submit" size="sm">
@@ -755,23 +755,23 @@ export function AdminSettings() {
 
               <div className="space-y-2 max-h-72 overflow-y-auto pt-2">
                 {categories.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Nenhuma categoria cadastrada.</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 italic">Nenhuma categoria cadastrada.</p>
                 ) : (
                   categories.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-900/60 rounded-lg border border-gray-200 dark:border-slate-700"
                     >
                       <div className="flex items-center gap-3">
                         <span
                           className="w-3.5 h-3.5 rounded-full"
                           style={{ backgroundColor: cat.color || '#3b82f6' }}
                         />
-                        <span className="text-sm font-semibold text-gray-800">{cat.name}</span>
+                        <span className="text-sm font-semibold text-gray-800 dark:text-white">{cat.name}</span>
                       </div>
                       <button
                         onClick={() => handleDeleteCategory(cat.id)}
-                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/50"
                         title="Excluir Categoria"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -788,11 +788,11 @@ export function AdminSettings() {
             <CardBody className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-blue-600" />
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                     Departamentos / Setores da Instituição
                   </h3>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     Cadastre os setores onde os Kaizens serão aplicados (ex: Prensa, Solda, Manutenção).
                   </p>
                 </div>
@@ -824,17 +824,17 @@ export function AdminSettings() {
 
               <div className="space-y-2 max-h-72 overflow-y-auto pt-2">
                 {departments.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Nenhum departamento cadastrado.</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 italic">Nenhum departamento cadastrado.</p>
                 ) : (
                   departments.map((dep) => (
                     <div
                       key={dep.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-900/60 rounded-lg border border-gray-200 dark:border-slate-700"
                     >
-                      <span className="text-sm font-semibold text-gray-800">{dep.name}</span>
+                      <span className="text-sm font-semibold text-gray-800 dark:text-white">{dep.name}</span>
                       <button
                         onClick={() => handleDeleteDepartment(dep.id)}
-                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/50"
                         title="Excluir Departamento"
                       >
                         <Trash2 className="w-4 h-4" />

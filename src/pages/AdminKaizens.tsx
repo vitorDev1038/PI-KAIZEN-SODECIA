@@ -223,8 +223,8 @@ export function AdminKaizens() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestão Avançada de Kaizens</h1>
-          <p className="text-gray-600 mt-1">Gerencie submissões, planos 5W2H e fichas A3</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestão Avançada de Kaizens</h1>
+          <p className="text-gray-600 dark:text-slate-400 mt-1">Gerencie submissões, planos 5W2H e fichas A3</p>
         </div>
         <Button onClick={exportToCSV} variant="secondary">
           <Download className="w-4 h-4 mr-2" />
@@ -276,7 +276,7 @@ export function AdminKaizens() {
       {loading ? (
         <Card>
           <CardBody className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
           </CardBody>
         </Card>
       ) : (
@@ -287,27 +287,27 @@ export function AdminKaizens() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <h3 className="text-lg font-bold text-gray-900">{kaizen.title}</h3>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">{kaizen.title}</h3>
                       <Badge variant={kaizen.status} />
                       {kaizen.department && (
-                        <span className="px-2 py-0.5 text-xs font-semibold bg-blue-50 text-blue-800 rounded border border-blue-200 flex items-center gap-1">
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-primary-50 dark:bg-primary-950/60 text-primary-800 dark:text-primary-300 rounded border border-primary-200 dark:border-primary-800 flex items-center gap-1">
                           <Building2 className="w-3 h-3" /> {kaizen.department.name}
                         </span>
                       )}
                       {(kaizen.realized_savings || kaizen.estimated_savings) ? (
-                        <span className="px-2 py-0.5 text-xs font-bold bg-emerald-50 text-emerald-800 rounded border border-emerald-200 flex items-center gap-1">
+                        <span className="px-2 py-0.5 text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 rounded border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
                           <DollarSign className="w-3 h-3" /> R$ {(kaizen.realized_savings || kaizen.estimated_savings || 0).toLocaleString('pt-BR')} /mês
                         </span>
                       ) : null}
                     </div>
-                    <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 mb-2 text-xs text-gray-500 dark:text-slate-400">
                       {kaizen.category && (
-                        <span className="font-medium text-gray-700">Categoria: {kaizen.category.name}</span>
+                        <span className="font-medium text-gray-700 dark:text-slate-300">Categoria: {kaizen.category.name}</span>
                       )}
                       {kaizen.profile && <span>• Por: {kaizen.profile.full_name}</span>}
                       <span>• Data: {new Date(kaizen.created_at).toLocaleDateString('pt-BR')}</span>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{kaizen.problem}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-300 line-clamp-2">{kaizen.problem}</p>
                   </div>
                   <Button variant="secondary" size="sm" onClick={() => handleKaizenClick(kaizen)}>
                     Visualizar Detalhes
@@ -323,11 +323,11 @@ export function AdminKaizens() {
         <Modal isOpen={true} onClose={() => setSelectedKaizen(null)} title={`Kaizen: ${selectedKaizen.title}`} size="xl">
           <div className="space-y-4">
             {/* Modal Tabs */}
-            <div className="flex border-b border-gray-200">
+            <div className="flex border-b border-gray-200 dark:border-slate-700">
               <button
                 onClick={() => setActiveModalTab('details')}
                 className={`py-2 px-4 text-xs font-bold border-b-2 transition-colors ${
-                  activeModalTab === 'details' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'
+                  activeModalTab === 'details' ? 'border-primary-600 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 dark:text-slate-400'
                 }`}
               >
                 Avaliação & Feedback
@@ -335,7 +335,7 @@ export function AdminKaizens() {
               <button
                 onClick={() => setActiveModalTab('a3')}
                 className={`py-2 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-1 ${
-                  activeModalTab === 'a3' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'
+                  activeModalTab === 'a3' ? 'border-primary-600 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 dark:text-slate-400'
                 }`}
               >
                 <Printer className="w-3.5 h-3.5" /> Ficha A3 Kaizen (PDF)
@@ -343,7 +343,7 @@ export function AdminKaizens() {
               <button
                 onClick={() => setActiveModalTab('kanban')}
                 className={`py-2 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-1 ${
-                  activeModalTab === 'kanban' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'
+                  activeModalTab === 'kanban' ? 'border-primary-600 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 dark:text-slate-400'
                 }`}
               >
                 <Kanban className="w-3.5 h-3.5" /> Plano 5W2H (Kanban)
@@ -420,47 +420,47 @@ function KaizenDetailModalContent({
       <div className="flex items-center gap-3 flex-wrap">
         <Badge variant={kaizen.status} />
         {kaizen.department && (
-          <span className="px-2 py-1 text-xs font-semibold bg-blue-50 text-blue-800 rounded">
+          <span className="px-2 py-1 text-xs font-semibold bg-primary-50 dark:bg-primary-950/60 text-primary-800 dark:text-primary-300 rounded border border-primary-200 dark:border-primary-800">
             Setor: {kaizen.department.name}
           </span>
         )}
         {kaizen.category && (
-          <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+          <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded">
             {kaizen.category.name}
           </span>
         )}
       </div>
 
       {kaizen.image_url && (
-        <div className="rounded-lg overflow-hidden border border-gray-200">
+        <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700">
           <img src={kaizen.image_url} alt={kaizen.title} className="w-full h-48 object-cover" />
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl text-xs border border-gray-200">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-slate-900/60 p-4 rounded-xl text-xs border border-gray-200 dark:border-slate-700">
         <div>
-          <span className="text-gray-500 font-bold uppercase block">Economia Estimada</span>
-          <span className="text-sm font-black text-green-700">R$ {(kaizen.estimated_savings || 0).toLocaleString('pt-BR')}</span>
+          <span className="text-gray-500 dark:text-slate-400 font-bold uppercase block">Economia Estimada</span>
+          <span className="text-sm font-black text-green-700 dark:text-green-400">R$ {(kaizen.estimated_savings || 0).toLocaleString('pt-BR')}</span>
         </div>
         <div>
-          <span className="text-gray-500 font-bold uppercase block">Custo de Implantação</span>
-          <span className="text-sm font-black text-gray-700">R$ {(kaizen.implementation_cost || 0).toLocaleString('pt-BR')}</span>
+          <span className="text-gray-500 dark:text-slate-400 font-bold uppercase block">Custo de Implantação</span>
+          <span className="text-sm font-black text-gray-700 dark:text-slate-200">R$ {(kaizen.implementation_cost || 0).toLocaleString('pt-BR')}</span>
         </div>
       </div>
 
       <div>
-        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-1">Problema Identificado</h4>
-        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{kaizen.problem}</p>
+        <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1">Problema Identificado</h4>
+        <p className="text-sm text-gray-700 dark:text-slate-200 bg-gray-50 dark:bg-slate-900/60 p-3 rounded-lg border border-gray-200 dark:border-slate-700">{kaizen.problem}</p>
       </div>
 
       <div>
-        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-1">Sugestão de Melhoria</h4>
-        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{kaizen.suggestion}</p>
+        <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1">Sugestão de Melhoria</h4>
+        <p className="text-sm text-gray-700 dark:text-slate-200 bg-gray-50 dark:bg-slate-900/60 p-3 rounded-lg border border-gray-200 dark:border-slate-700">{kaizen.suggestion}</p>
       </div>
 
       <div>
-        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-1">Benefícios Esperados</h4>
-        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">{kaizen.benefits}</p>
+        <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1">Benefícios Esperados</h4>
+        <p className="text-sm text-gray-700 dark:text-slate-200 bg-gray-50 dark:bg-slate-900/60 p-3 rounded-lg border border-gray-200 dark:border-slate-700">{kaizen.benefits}</p>
       </div>
 
       {!showFeedback && (
@@ -489,7 +489,7 @@ function KaizenDetailModalContent({
       )}
 
       {showFeedback && (
-        <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="space-y-3 p-4 bg-gray-50 dark:bg-slate-900/60 rounded-lg border border-gray-200 dark:border-slate-700">
           <Textarea
             label={actionType === 'reject' ? 'Motivo da Reprovação' : 'Feedback para Ajustes'}
             value={feedback}
@@ -512,28 +512,30 @@ function KaizenDetailModalContent({
         </div>
       )}
 
-      <div className="border-t border-gray-200 pt-4">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Comentários e Histórico de Feedback</h4>
+      <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
+        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Comentários e Histórico de Feedback</h4>
         <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
           {comments.map((comment) => (
             <div
               key={comment.id}
               className={`p-3 rounded-lg text-xs ${
-                comment.is_feedback ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'
+                comment.is_feedback
+                  ? 'bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800'
+                  : 'bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-700'
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-gray-900 dark:text-white">
                   {comment.profiles?.full_name || 'Usuário'}
                 </span>
                 {comment.is_feedback && (
-                  <span className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-800 font-bold rounded">
+                  <span className="text-[10px] px-2 py-0.5 bg-primary-100 dark:bg-primary-900/80 text-primary-800 dark:text-primary-300 font-bold rounded">
                     Feedback Oficial Admin
                   </span>
                 )}
               </div>
-              <p className="text-gray-700">{comment.content}</p>
-              <p className="text-[10px] text-gray-400 mt-1">
+              <p className="text-gray-700 dark:text-slate-200">{comment.content}</p>
+              <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">
                 {new Date(comment.created_at).toLocaleString('pt-BR')}
               </p>
             </div>

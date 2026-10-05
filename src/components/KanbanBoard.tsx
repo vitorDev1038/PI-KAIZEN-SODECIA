@@ -93,17 +93,17 @@ export function KanbanBoard({ kaizenId, canEdit = true }: KanbanBoardProps) {
   };
 
   const columns: { id: ActionPlan['status']; title: string; icon: any; color: string }[] = [
-    { id: 'todo', title: 'A Fazer (To Do)', icon: ListTodo, color: 'border-amber-400 bg-amber-50/50' },
-    { id: 'in_progress', title: 'Em Andamento', icon: Clock, color: 'border-blue-400 bg-blue-50/50' },
-    { id: 'done', title: 'Concluído (Done)', icon: CheckCircle2, color: 'border-green-400 bg-green-50/50' },
+    { id: 'todo', title: 'A Fazer (To Do)', icon: ListTodo, color: 'border-amber-400 bg-amber-50/50 dark:bg-amber-950/30 dark:border-amber-700' },
+    { id: 'in_progress', title: 'Em Andamento', icon: Clock, color: 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/30 dark:border-blue-700' },
+    { id: 'done', title: 'Concluído (Done)', icon: CheckCircle2, color: 'border-green-400 bg-green-50/50 dark:bg-green-950/30 dark:border-green-700' },
   ];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-bold text-gray-900 text-base">Plano de Ação de Implantação (5W2H)</h3>
-          <p className="text-xs text-gray-500">Acompanhamento de tarefas e responsáveis</p>
+          <h3 className="font-bold text-gray-900 dark:text-white text-base">Plano de Ação de Implantação (5W2H)</h3>
+          <p className="text-xs text-gray-500 dark:text-slate-400">Acompanhamento de tarefas e responsáveis</p>
         </div>
         {canEdit && (
           <Button size="sm" variant="secondary" onClick={() => setShowAddForm(!showAddForm)}>
@@ -114,7 +114,7 @@ export function KanbanBoard({ kaizenId, canEdit = true }: KanbanBoardProps) {
       </div>
 
       {showAddForm && (
-        <form onSubmit={handleCreatePlan} className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+        <form onSubmit={handleCreatePlan} className="bg-gray-50 dark:bg-slate-900/60 p-4 rounded-xl border border-gray-200 dark:border-slate-700 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="O que fazer? (What)"
@@ -156,7 +156,7 @@ export function KanbanBoard({ kaizenId, canEdit = true }: KanbanBoardProps) {
 
       {loading ? (
         <div className="text-center py-6">
-          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -165,39 +165,39 @@ export function KanbanBoard({ kaizenId, canEdit = true }: KanbanBoardProps) {
             const colPlans = plans.filter((p) => p.status === col.id);
             return (
               <div key={col.id} className={`rounded-xl border ${col.color} p-3 min-h-[160px]`}>
-                <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200 dark:border-slate-700">
                   <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-gray-700" />
-                    <span className="font-semibold text-xs text-gray-800">{col.title}</span>
+                    <Icon className="w-4 h-4 text-gray-700 dark:text-slate-300" />
+                    <span className="font-semibold text-xs text-gray-800 dark:text-white">{col.title}</span>
                   </div>
-                  <span className="text-xs bg-white font-bold px-2 py-0.5 rounded-full text-gray-600 border border-gray-200">
+                  <span className="text-xs bg-white dark:bg-slate-800 font-bold px-2 py-0.5 rounded-full text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700">
                     {colPlans.length}
                   </span>
                 </div>
 
                 <div className="space-y-2">
                   {colPlans.map((plan) => (
-                    <Card key={plan.id} className="bg-white text-xs border border-gray-200 shadow-sm">
+                    <Card key={plan.id} className="bg-white dark:bg-slate-800 text-xs border border-gray-200 dark:border-slate-700 shadow-sm">
                       <CardBody className="p-3 space-y-2">
-                        <p className="font-bold text-gray-900">{plan.what}</p>
-                        <div className="flex items-center justify-between text-[11px] text-gray-500">
+                        <p className="font-bold text-gray-900 dark:text-white">{plan.what}</p>
+                        <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-slate-400">
                           <span className="flex items-center gap-1">
-                            <User className="w-3 h-3 text-gray-400" /> {plan.who}
+                            <User className="w-3 h-3 text-gray-400 dark:text-slate-500" /> {plan.who}
                           </span>
                           {plan.due_date && (
                             <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-gray-400" />{' '}
+                              <Calendar className="w-3 h-3 text-gray-400 dark:text-slate-500" />{' '}
                               {new Date(plan.due_date).toLocaleDateString('pt-BR')}
                             </span>
                           )}
                         </div>
 
                         {canEdit && (
-                          <div className="pt-2 border-t border-gray-100 flex justify-end gap-1">
+                          <div className="pt-2 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-1">
                             {col.id !== 'todo' && (
                               <button
                                 onClick={() => updateStatus(plan.id, col.id === 'done' ? 'in_progress' : 'todo')}
-                                className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[10px] text-gray-700 font-medium"
+                                className="px-2 py-1 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded text-[10px] text-gray-700 dark:text-slate-300 font-medium"
                               >
                                 ← Mover
                               </button>
@@ -205,7 +205,7 @@ export function KanbanBoard({ kaizenId, canEdit = true }: KanbanBoardProps) {
                             {col.id !== 'done' && (
                               <button
                                 onClick={() => updateStatus(plan.id, col.id === 'todo' ? 'in_progress' : 'done')}
-                                className="px-2 py-1 bg-blue-100 hover:bg-blue-200 rounded text-[10px] text-blue-800 font-medium"
+                                className="px-2 py-1 bg-primary-100 dark:bg-primary-950/80 hover:bg-primary-200 rounded text-[10px] text-primary-800 dark:text-primary-300 font-medium"
                               >
                                 Mover →
                               </button>

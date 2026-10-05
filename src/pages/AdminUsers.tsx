@@ -62,14 +62,14 @@ export function AdminUsers() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestão de Usuários</h1>
-        <p className="text-gray-600 mt-1">Gerencie todos os usuários do sistema</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestão de Usuários</h1>
+        <p className="text-gray-600 dark:text-slate-400 mt-1">Gerencie todos os usuários do sistema</p>
       </div>
 
       {loading ? (
         <Card>
           <CardBody className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
           </CardBody>
         </Card>
       ) : (
@@ -77,12 +77,12 @@ export function AdminUsers() {
           {users.map((user) => (
             <Card key={user.id} hover>
               <CardBody>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{user.full_name}</h3>
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{user.full_name}</h3>
                       {user.role === 'admin' ? (
-                        <Badge variant="default" className="bg-purple-100 text-purple-800 border-purple-300">
+                        <Badge variant="default" className="bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-800">
                           <Shield className="w-3 h-3 mr-1" />
                           Administrador
                         </Badge>
@@ -95,8 +95,8 @@ export function AdminUsers() {
                         <Badge variant="rejected">Inativo</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                    <p className="text-sm text-gray-600 dark:text-slate-400">{user.email}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-slate-500">
                       <span>Pontos: {user.points}</span>
                       <span>Cadastrado em: {new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
                     </div>
