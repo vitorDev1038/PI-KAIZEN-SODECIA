@@ -140,7 +140,20 @@ CREATE TABLE IF NOT EXISTS public.badges (
   created_at timestamptz DEFAULT now()
 );
 
--- 10. HABILITAR RLS EM TODAS AS TABELAS
+-- 10. TABELA DE TICKETS DE RESGATE DE PRÊMIOS (tickets)
+CREATE TABLE IF NOT EXISTS public.tickets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code text UNIQUE NOT NULL,
+  user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  reward_title text NOT NULL,
+  reward_description text,
+  points_spent integer NOT NULL DEFAULT 0,
+  status text DEFAULT 'active' CHECK (status IN ('active', 'used')),
+  created_at timestamptz DEFAULT now(),
+  used_at timestamptz
+);
+
+-- 11. HABILITAR RLS EM TODAS AS TABELAS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
@@ -150,9 +163,13 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.action_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.badges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tickets ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public Badges Access" ON public.badges;
 CREATE POLICY "Public Badges Access" ON public.badges FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public Tickets Access" ON public.tickets;
+CREATE POLICY "Public Tickets Access" ON public.tickets FOR ALL USING (true) WITH CHECK (true);
 
 -- 11. INSERIR BADGES PADRÃO
 INSERT INTO public.badges (title, description, points_required, icon) VALUES
