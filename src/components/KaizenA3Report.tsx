@@ -1,4 +1,5 @@
 import type { Kaizen, Category, Profile, Department, ActionPlan } from '../lib/database.types';
+import { useSettings } from '../contexts/SettingsContext';
 import { Button } from './ui/Button';
 import { Printer, TrendingUp, DollarSign, Calendar, User, Building2, CheckCircle2 } from 'lucide-react';
 
@@ -15,6 +16,8 @@ interface KaizenA3ReportProps {
 }
 
 export function KaizenA3Report({ kaizen }: KaizenA3ReportProps) {
+  const { settings } = useSettings();
+
   const handlePrint = () => {
     window.print();
   };
@@ -27,7 +30,7 @@ export function KaizenA3Report({ kaizen }: KaizenA3ReportProps) {
       <div className="flex items-center justify-between border-b border-gray-200 pb-4 print:hidden">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Relatório A3 Kaizen - Padrão Industrial</h2>
-          <p className="text-xs text-gray-500">Documento de Gestão à Vista Sodecia</p>
+          <p className="text-xs text-gray-500">Documento de Gestão à Vista - {settings.institutionName}</p>
         </div>
         <Button onClick={handlePrint} variant="primary">
           <Printer className="w-4 h-4 mr-2" />
@@ -37,14 +40,14 @@ export function KaizenA3Report({ kaizen }: KaizenA3ReportProps) {
 
       {/* Printable Sheet */}
       <div className="border-4 border-blue-900 p-6 bg-white rounded-lg print:border-2 print:p-4 print:w-full">
-        {/* Header Sodecia */}
+        {/* Header Institution */}
         <div className="flex items-center justify-between border-b-2 border-blue-900 pb-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-900 text-white rounded-lg flex items-center justify-center font-black text-xl tracking-wider">
-              SOD
+              {settings.institutionAbbreviation || 'SOD'}
             </div>
             <div>
-              <h1 className="text-2xl font-black text-blue-950 uppercase tracking-tight">SODECIA KAIZEN</h1>
+              <h1 className="text-2xl font-black text-blue-950 uppercase tracking-tight">{settings.institutionName}</h1>
               <p className="text-xs font-semibold text-gray-600">RELATÓRIO A3 DE MELHORIA CONTINUA</p>
             </div>
           </div>

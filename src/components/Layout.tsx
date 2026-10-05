@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { Button } from './ui/Button';
-import { Lightbulb, LogOut, LayoutDashboard, FileText, Users } from 'lucide-react';
+import { Lightbulb, LogOut, LayoutDashboard, FileText, Users, Settings } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +12,7 @@ interface LayoutProps {
 
 export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const { profile, signOut } = useAuth();
+  const { settings } = useSettings();
 
   const isAdmin = profile?.role === 'admin';
 
@@ -18,6 +20,7 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, show: true },
     { id: 'kaizens', name: 'Kaizens', icon: FileText, show: isAdmin },
     { id: 'users', name: 'Usuários', icon: Users, show: isAdmin },
+    { id: 'settings', name: 'Configurações', icon: Settings, show: isAdmin },
   ];
 
   return (
@@ -25,12 +28,12 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onPageChange('dashboard')}>
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white">
                 <Lightbulb className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Sodecia Kaizen</h1>
+                <h1 className="text-xl font-bold text-gray-900">{settings.institutionName}</h1>
               </div>
             </div>
 

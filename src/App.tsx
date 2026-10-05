@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { EmployeeDashboard } from './pages/EmployeeDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminKaizens } from './pages/AdminKaizens';
 import { AdminUsers } from './pages/AdminUsers';
+import { AdminSettings } from './pages/AdminSettings';
 import { Layout } from './components/Layout';
 import { Toast, useToast } from './components/ui/Toast';
 
@@ -48,6 +50,8 @@ function AppContent() {
         return <AdminKaizens />;
       case 'users':
         return <AdminUsers />;
+      case 'settings':
+        return <AdminSettings />;
       default:
         return <AdminDashboard />;
     }
@@ -73,7 +77,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <SettingsProvider>
+        <AppContent />
+      </SettingsProvider>
     </AuthProvider>
   );
 }

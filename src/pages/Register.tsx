@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Lightbulb } from 'lucide-react';
@@ -10,6 +11,7 @@ interface RegisterProps {
 
 export function Register({ onToggleLogin }: RegisterProps) {
   const { signUp } = useAuth();
+  const { settings } = useSettings();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -69,11 +71,11 @@ export function Register({ onToggleLogin }: RegisterProps) {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white">
               <Lightbulb className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Kaizen Flow</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{settings.institutionName}</h1>
               <p className="text-sm text-gray-600">Criar nova conta</p>
             </div>
           </div>
