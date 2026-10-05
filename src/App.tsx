@@ -8,13 +8,14 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminKaizens } from './pages/AdminKaizens';
 import { AdminUsers } from './pages/AdminUsers';
 import { AdminSettings } from './pages/AdminSettings';
-import { Layout } from './components/Layout';
+import { GamificationPage } from './pages/GamificationPage';
+import { Layout, PageType } from './components/Layout';
 import { Toast, useToast } from './components/ui/Toast';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'kaizens' | 'users' | 'settings'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
   const toast = useToast();
 
   if (loading) {
@@ -22,7 +23,7 @@ function AppContent() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando...</p>
+          <p className="text-gray-600 font-medium">Carregando Sistema Kaizen Sodecia...</p>
         </div>
       </div>
     );
@@ -39,15 +40,27 @@ function AppContent() {
   const isAdmin = profile.role === 'admin';
 
   const renderPage = () => {
+    // Non-admin (employee) page routing
     if (!isAdmin) {
-      return <EmployeeDashboard />;
+      switch (currentPage) {
+        case 'dashboard':
+        case 'kaizens':
+          return <EmployeeDashboard />;
+        case 'gamification':
+          return <GamificationPage />;
+        default:
+          return <EmployeeDashboard />;
+      }
     }
 
+    // Admin/Manager page routing
     switch (currentPage) {
       case 'dashboard':
         return <AdminDashboard />;
       case 'kaizens':
         return <AdminKaizens />;
+      case 'gamification':
+        return <GamificationPage />;
       case 'users':
         return <AdminUsers />;
       case 'settings':
