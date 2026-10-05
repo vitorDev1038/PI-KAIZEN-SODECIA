@@ -10,6 +10,8 @@ import { Card, CardHeader, CardBody } from './ui/Card';
 import { Upload, DollarSign, Lightbulb } from 'lucide-react';
 import { useToast } from './ui/Toast';
 
+import { getOrSeedDepartments, resolveDepartmentId } from '../lib/departments';
+
 interface KaizenFormProps {
   onSuccess: () => void;
 }
@@ -42,8 +44,8 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
     const { data: catData } = await supabase.from('categories').select('*').order('name');
     if (catData) setCategories(catData);
 
-    const { data: depData } = await supabase.from('departments').select('*').order('name');
-    if (depData) setDepartments(depData);
+    const deps = await getOrSeedDepartments();
+    setDepartments(deps);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,10 +90,12 @@ export function KaizenForm({ onSuccess }: KaizenFormProps) {
         }
       }
 
+      const resolvedDepId = await resolveDepartmentId(formData.department_id, departments);
+
       const { error } = await supabase.from('kaizens').insert({
         title: formData.title,
         category_id: formData.category_id || null,
-        department_id: formData.department_id || null,
+        department_id: resolvedDepId,
         problem: formData.problem,
         suggestion: formData.suggestion,
         benefits: formData.benefits,

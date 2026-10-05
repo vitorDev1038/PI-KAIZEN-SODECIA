@@ -13,6 +13,7 @@ import { Download, Check, X, MessageSquare, Printer, Kanban, Building2, DollarSi
 import { useAuth } from '../contexts/AuthContext';
 import { KaizenA3Report } from '../components/KaizenA3Report';
 import { KanbanBoard } from '../components/KanbanBoard';
+import { getOrSeedDepartments } from '../lib/departments';
 
 interface KaizenWithDetails extends Kaizen {
   category?: Category;
@@ -74,8 +75,8 @@ export function AdminKaizens() {
   };
 
   const fetchDepartments = async () => {
-    const { data } = await supabase.from('departments').select('*').order('name');
-    if (data) setDepartments(data);
+    const deps = await getOrSeedDepartments();
+    setDepartments(deps);
   };
 
   const fetchComments = async (kaizenId: string) => {

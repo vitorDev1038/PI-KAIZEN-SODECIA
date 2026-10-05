@@ -6,6 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Card, CardBody } from '../components/ui/Card';
 import { supabase } from '../lib/supabase';
 import type { Category, Department } from '../lib/database.types';
+import { getOrSeedDepartments, DEFAULT_DEPARTMENTS } from '../lib/departments';
 import {
   Building2,
   Award,
@@ -21,6 +22,7 @@ import {
   ShieldCheck,
   Mail,
   HelpCircle,
+  RefreshCw,
 } from 'lucide-react';
 
 export function AdminSettings() {
@@ -59,9 +61,10 @@ export function AdminSettings() {
     setLoadingData(true);
     try {
       const { data: cats } = await supabase.from('categories').select('*').order('name');
-      const { data: deps } = await supabase.from('departments').select('*').order('name');
       if (cats) setCategories(cats);
-      if (deps) setDepartments(deps);
+
+      const deps = await getOrSeedDepartments();
+      setDepartments(deps);
     } catch (err) {
       console.error('Error fetching categories/departments:', err);
     } finally {
@@ -133,10 +136,11 @@ export function AdminSettings() {
     e.preventDefault();
     if (!newDepName.trim()) return;
 
+    const depName = newDepName.trim();
     try {
       const { data, error } = await supabase
         .from('departments')
-        .insert([{ name: newDepName.trim(), company: formData.institutionName }])
+        .insert([{ name: depName, company: formData.institutionName || 'Sodecia' }])
         .select()
         .single();
 
@@ -145,10 +149,36 @@ export function AdminSettings() {
       if (data) {
         setDepartments((prev) => [...prev, data]);
         setNewDepName('');
-        toast.addToast('Departamento adicionado com sucesso!', 'success');
+        toast.addToast('Setor/Departamento adicionado com sucesso!', 'success');
       }
     } catch (err: any) {
-      toast.addToast(err.message || 'Erro ao adicionar departamento', 'error');
+      // Local fallback insertion if DB table does not exist yet
+      const fallbackDep: Department = {
+        id: `dep-custom-${Date.now()}`,
+        name: depName,
+        company: formData.institutionName || 'Sodecia',
+        created_at: new Date().toISOString(),
+      };
+      setDepartments((prev) => [...prev, fallbackDep]);
+      setNewDepName('');
+      toast.addToast(`Setor "${depName}" adicionado na interface. Para salvar no DB, execute CREATE_SECTORS.sql no Supabase.`, 'info');
+    }
+  };
+
+  const handleRestoreDefaultDepartments = async () => {
+    try {
+      const seedItems = DEFAULT_DEPARTMENTS.map(({ name, company }) => ({ name, company: company || 'Sodecia' }));
+      const { data, error } = await supabase.from('departments').insert(seedItems).select();
+      if (!error && data && data.length > 0) {
+        setDepartments(data);
+        toast.addToast('Setores padrão Sodecia salvos no banco de dados!', 'success');
+      } else {
+        setDepartments(DEFAULT_DEPARTMENTS);
+        toast.addToast('Setores padrão Sodecia restaurados na interface!', 'info');
+      }
+    } catch {
+      setDepartments(DEFAULT_DEPARTMENTS);
+      toast.addToast('Setores padrão Sodecia restaurados na interface!', 'info');
     }
   };
 
@@ -694,13 +724,28 @@ export function AdminSettings() {
           {/* Gerenciar Departamentos/Setores */}
           <Card>
             <CardBody className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
-                Departamentos / Setores da Instituição
-              </h3>
-              <p className="text-xs text-gray-500">
-                Cadastre os setores onde os Kaizens serão aplicados (ex: Linha 1, TI, Manutenção).
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                    Departamentos / Setores da Instituição
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Cadastre os setores onde os Kaizens serão aplicados (ex: Prensa, Solda, Manutenção).
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleRestoreDefaultDepartments}
+                  className="flex items-center gap-1.5 whitespace-nowrap"
+                  title="Carregar setores padrão industriais da Sodecia"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Setores Padrão Sodecia
+                </Button>
+              </div>
 
               <form onSubmit={handleAddDepartment} className="flex items-center gap-2 pt-2">
                 <Input
